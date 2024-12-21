@@ -15,6 +15,21 @@ import api_key
 # Authenticate with Spotify
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=api_key.spotify_client_id, client_secret=api_key.spotify_client_secret))
 
+yt_dlp_download_options = {
+    'format': 'bestaudio/best',  # Select the best audio format available
+    'outtmpl': '%(artist)s<|>%(track)s.%(ext)s',  # Custom output template
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',  # Set preferred codec to MP3
+        'preferredquality': '192',  # Set preferred quality (in kbps)
+    }],
+    'postprocessor_args': [
+        '-id3v2_version', '3',  # Use ID3v2.3 tags for maximum compatibility
+        '-b:a', '192k'  # Set audio bitrate to 192 kbps
+    ],
+    'quiet': False,  # Show progress and details
+    'cookiesfrombrowser': ('chrome',),
+    }
 
 
 # Configure basic logging
@@ -27,7 +42,31 @@ logging.basicConfig(
 
 
 def get_lyrics(track_name, artists_names):
+    """
+    Fetch the lyrics for a given track and artist(s).
 
+    This function attempts to retrieve synchronized lyrics (LRC format) first.
+    If synchronized lyrics are unavailable, it will search for plain text lyrics.
+    If no lyrics are found, an empty string is returned.
+
+    Args:
+        track_name (str): The name of the track for which lyrics are being retrieved.
+        artists_names (str): The name(s) of the artist(s) performing the track.
+
+    Returns:
+        str: The lyrics for the track, either synchronized or plain. Returns an empty
+             string if no lyrics are available.
+
+    Logging:
+        - Logs a message indicating whether synchronized or plain lyrics were found.
+        - Logs a message if no lyrics are available for the given track and artist(s).
+
+    Notes:
+        - Synchronized lyrics are prioritized, and providers for both types of lyrics
+          are specified in the function.
+        - Uses the `syncedlyrics` library to fetch lyrics from available providers
+          (e.g., Lrclib, NetEase, Genius).
+    """
     lyrics_type = "synchronized"
 
     # Search for synced lyrics
@@ -47,7 +86,33 @@ def get_lyrics(track_name, artists_names):
     return lrc.rstrip()
 
 def get_track_info(track_name, artist_name):
+    """
+    Retrieves detailed information about a specific track.
 
+    Searches for the track using the provided track name and artist name, fetches 
+    metadata such as album details, release date, track number, and thumbnail URL.
+    Also attempts to fetch lyrics for the track.
+
+    Args:
+        track_name (str): The name of the track.
+        artist_name (str): The name of the artist.
+
+    Returns:
+        dict: A dictionary containing track information with the following keys:
+            - `track_name` (str): Name of the track.
+            - `track_artists` (list[str]): List of artists who performed the track.
+            - `album_name` (str): Name of the album containing the track.
+            - `release_date` (str): Release date of the album.
+            - `track_number` (int): Track's position in the album.
+            - `total_tracks` (int): Total number of tracks in the album.
+            - `album_artists` (list[str]): List of artists credited for the album.
+            - `lyrics` (str): Lyrics of the track.
+            - `thumbnail_url` (str): URL of the album's thumbnail image.
+
+    Logging:
+        - Logs the track details if the track is found.
+        - Logs a message if the track is not found.
+    """
     logging.info(f"Get information about track: {artist_name} - {track_name}")
 
     # Construct the query
@@ -83,13 +148,38 @@ def get_track_info(track_name, artist_name):
         logging.info("Album artists:", track_info['album_artists'])
         logging.info("Thumbnail:", track_info['thumbnail_url'])
     else:
-        
-        logging.info(f"Track {artist_name} - {track_name} was not found.")
+        logging.warning(f"Track {artist_name} - {track_name} was not found.")
     
-
     return track_info
 
 def add_tag(audio_path, track_info):
+    """
+    Adds or updates ID3 tags for an MP3 file.
+
+    This function writes metadata such as track name, artists, album details, 
+    release date, lyrics, and album artwork to the specified MP3 file.
+
+    Args:
+        audio_path (str): Path to the MP3 file to be updated.
+        track_info (dict): Dictionary containing track information with the following keys:
+            - `track_name` (str): Name of the track.
+            - `track_artists` (list[str]): List of artists who performed the track.
+            - `release_date` (str): Release date of the track.
+            - `album_name` (str, optional): Name of the album containing the track.
+            - `album_artists` (list[str], optional): List of artists credited for the album.
+            - `track_number` (int): Track's position in the album.
+            - `total_tracks` (int): Total number of tracks in the album.
+            - `lyrics` (str): Lyrics of the track.
+            - `thumbnail_url` (str, optional): URL of the album's thumbnail image.
+
+    Notes:
+        - Adds synchronized lyrics if available in the `lyrics` key.
+        - Adds album artwork if a valid URL is provided in `thumbnail_url`.
+        - Ensures the MP3 file's metadata is saved after modification.
+
+    Logging:
+        - Logs a warning if the thumbnail image cannot be downloaded.
+    """
     # Load the MP3 file
     audio = MP3(audio_path, ID3=ID3)
 
@@ -122,7 +212,7 @@ def add_tag(audio_path, track_info):
                 )
             )
     else:
-        raise Exception(f"Failed to download image. Status code: {response.status_code}")
+        logging.warning(f"Failed to download image. Status code: {response.status_code}")
 
     
     # Save changes
@@ -131,10 +221,11 @@ def add_tag(audio_path, track_info):
 
 def tmp(path):
     for f in os.scandir(path):
-        name = f.path.split("/")[-1][:-4]
-        info = name.split("<|>")
-        inf = get_track_info(info[-1], info[0])
-        add_tag(f.path,inf)
+        if f.is_file():
+            name = f.name[:-4]
+            info = name.split("<|>")
+            inf = get_track_info(info[-1], info[0])
+            add_tag(f.path,inf)
 
 def search_and_add_lyrics(audio_path):
 
@@ -194,39 +285,9 @@ def add_lyrics_all(library_path):
         elif f.name.lower().endswith(".mp3"):
             search_and_add_lyrics(f.path)
 
-def download_by_artist():
-    # Define download options
-    # download_options = {
-    #     'format': 'bestaudio/best',
-    #     'outtmpl': '%(artist)s<|>%(track)s.%(ext)s',
-    #     'postprocessors': [{
-    #         'key': 'FFmpegExtractAudio',
-    #         'preferredcodec': 'm4a',
-    #         'preferredquality': '192',
-    #     }],
-    #     'postprocessor_args': [
-    #         '-c:a', 'aac',  # Use native FFmpeg AAC encoder
-    #         '-b:a', '192k'  # Set bitrate
-    #     ],
-    #     'cookiesfrombrowser': ('chrome',),
-    # }
-    download_options = {
-    'format': 'bestaudio/best',  # Select the best audio format available
-    'outtmpl': '%(artist)s<|>%(track)s.%(ext)s',  # Custom output template
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'mp3',  # Set preferred codec to MP3
-        'preferredquality': '192',  # Set preferred quality (in kbps)
-    }],
-    'postprocessor_args': [
-        '-id3v2_version', '3',  # Use ID3v2.3 tags for maximum compatibility
-        '-b:a', '192k'  # Set audio bitrate to 192 kbps
-    ],
-    'quiet': False,  # Show progress and details
-    'cookiesfrombrowser': ('chrome',),
-    }
-    url = "https://music.youtube.com/channel/UCqhjJO7w2rv5Tkk7ZFYl7QA"
-    with yt_dlp.YoutubeDL(download_options) as ydl:
+def download_by_artist(artist_id):
+    url = f"https://music.youtube.com/channel/{artist_id}"
+    with yt_dlp.YoutubeDL(yt_dlp_download_options) as ydl:
         ydl.download([url])
 
 
