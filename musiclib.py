@@ -12,6 +12,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import api_key
 import re 
+import time
 
 EXT = ".mp3"
 # Authenticate with Spotify
@@ -44,8 +45,8 @@ logging.basicConfig(
     filemode='w'          # Overwrite ('w') or append ('a') to log file
 )
 
-def trackname_remove_feat(title):
-    name = re.sub(r'\(feat.*?\)|\(ft.*?\)', '', title)
+def trackname_remove_unnecessary(title):
+    name = re.sub(r'\(feat.*?\)|\(ft.*?\)|\(prod.*?\)|\[prod.*?\]', '', title)
     return name.rstrip()
 
 
@@ -133,7 +134,7 @@ def get_track_info_spotify(track_name, artist_name):
         track = results['tracks']['items'][0]
         album = track.get('album', {})
 
-        track_info['track_name'] = trackname_remove_feat(track.get('name', ''))
+        track_info['track_name'] = trackname_remove_unnecessary(track.get('name', ''))
         track_info['track_artists'] = [artist.get('name', '') for artist in track.get('artists', [])]
         track_info['album_name'] = album.get('name', '')
         track_info['release_date'] = album.get('release_date', '')
@@ -171,7 +172,7 @@ def get_track_info_genius(track_name, artists_names):
 
     track_info = dict()
 
-    track_info['track_name'] = trackname_remove_feat(track.get('title', ''))
+    track_info['track_name'] = trackname_remove_unnecessary(track.get('title', ''))
     track_info['track_artists'] = [track['primary_artist']['name']]
     track_info['album_name'] = ""
     track_info['release_date'] = f"{track['release_date_components']['year']} - {track['release_date_components']['month']} - {track['release_date_components']['day']}"
@@ -335,7 +336,7 @@ def download_by_artist(artist_id, download_folder):
         for entry in channel_metadata['entries']:
 
 
-            entry_title = trackname_remove_feat(entry['title'])
+            entry_title = trackname_remove_unnecessary(entry['title'])
             entry_artists = ", ".join(entry['artists'])
 
             print("entry_title", entry_title)
@@ -376,7 +377,53 @@ def download_by_artist(artist_id, download_folder):
         return video_metadata_list
 
 
+def api_request(url, retries=3, delay=2):
+    for attempt in range(retries):
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            time.sleep(delay)
+    return {}
 
+def deezer_all_fragments(url):
+    all_data = []
+    while True:
+        data = api_request(url)
+        all_data.extend(data["data"])
+        if "next" in data:
+            url = data["next"]
+        else:
+            return all_data
+
+def download_by_artist_deezer(artist_id):
+    albums_url = f"https://api.deezer.com/artist/{artist_id}/albums"
+    
+    # import json
+    # with open("data.json", "w") as json_file:
+    #     json.dump(data, json_file, indent=4)  # Use indent=4 for pretty-printing
+    
+
+    titles = []
+
+    albums = deezer_all_fragments(albums_url)
+    
+    for album in albums:
+        tracks_url = album["tracklist"]
+        tracks = deezer_all_fragments(tracks_url)
+        for track in tracks:
+            title = trackname_remove_unnecessary(track["title"])
+            titles.append(title)
+    
+    print(titles)
+            
+
+
+    print(len(titles))
+    # print(data["total"])
+    
+
+    
 
 
 
@@ -400,6 +447,7 @@ if __name__ == "__main__":
     # download_by_artist("UCPfUH32WlUYohFvTqo65GBA", library_path) # Aneezy
     # download_by_artist("UCxtUPmgn4pinQhVHLdKau9A", library_path) # Dima Ermuzevic
     download_by_artist("UCqhjJO7w2rv5Tkk7ZFYl7QA", library_path) # Big Baby Tape
+    # download_by_artist("UCet06fFav7tnvdauZw7EwTA", library_path) # Oxxxymiron
 
     
     # tmp(library_path)
