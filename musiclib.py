@@ -18,10 +18,10 @@ EXT = ".mp3"
 # Authenticate with Spotify
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=api_key.spotify_client_id, client_secret=api_key.spotify_client_secret))
 
-yt_dlp_download_options = {
+ydl_opts = {
     'format': 'bestaudio/best',  # Select the best audio format available
     'outtmpl': '%(id)s.%(ext)s',  # Custom output template
-    # 'skip_download': True,  # This enables the --skip-download behavior
+    'download_archive': 'downloaded_videos.txt',
     'retries': 5,  # Retry 5 times for errors
     'postprocessors': [{
         'key': 'FFmpegExtractAudio',
@@ -33,7 +33,6 @@ yt_dlp_download_options = {
         '-b:a', '192k'  # Set audio bitrate to 192 kbps
     ],
     'quiet': False,  # Show progress and details
-    'cookiesfrombrowser': ('chrome',),
     }
 
 
@@ -147,15 +146,6 @@ def get_track_info_spotify(track_name, artist_name):
         images = album.get('images', [])
         track_info['thumbnail_url'] = images[0].get('url', '') if images else ''
 
-        # Logging
-        # logging.info("Track Name:", track_info['track_name'])
-        # logging.info("Artist(s):", track_info['track_artists'])
-        # logging.info("Album:", track_info['album_name'])
-        # logging.info("Release date:", track_info['release_date'])
-        # logging.info("Track number:", track_info['track_number'])
-        # logging.info("Total tacks:", track_info['total_tracks'])
-        # logging.info("Album artists:", track_info['album_artists'])
-        # logging.info("Thumbnail:", track_info['thumbnail_url'])
     else:
         logging.warning(f"Track {artist_name} - {track_name} was not found.")
     
@@ -326,7 +316,7 @@ def add_lyrics_all(library_path):
 
 def download_by_artist(artist_id, download_folder):
     url = f"https://music.youtube.com/channel/{artist_id}"
-    with yt_dlp.YoutubeDL(yt_dlp_download_options) as ydl:
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         # ydl.download([url])
         channel_metadata = ydl.extract_info(url, download=True)  # Get metadata without downloading
 
@@ -396,7 +386,16 @@ def deezer_all_fragments(url):
         else:
             return all_data
 
-def download_by_artist_deezer(artist_id):
+def get_discography_by_artist_deezer(artist_name):
+    artist_search_url = f"https://api.deezer.com/search/artist?q={artist_name}"
+    artist_search = api_request(artist_search_url)
+    print(artist_search)
+
+    if not "data" in artist_search or len(artist_search["data"]) == 0:
+        return []
+
+
+    artist_id = artist_search["data"][0]["id"]
     albums_url = f"https://api.deezer.com/artist/{artist_id}/albums"
     
     # import json
@@ -415,15 +414,18 @@ def download_by_artist_deezer(artist_id):
             title = trackname_remove_unnecessary(track["title"])
             titles.append(title)
     
-    print(titles)
-            
+    for title in titles:
+        download_by_title_youtube(title, artist_name)
+        
 
 
     print(len(titles))
-    # print(data["total"])
-    
 
     
+def download_by_title_youtube(title, artist_name):
+    query = f"ytsearch:{artist_name} {title}"
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([query])
 
 
 
@@ -440,7 +442,7 @@ if __name__ == "__main__":
     except Exception as e:
         logging.warning(f"Error creating folders: {e}")
 
-    yt_dlp_download_options['outtmpl'] = os.path.join(library_path,yt_dlp_download_options['outtmpl'])
+    ydl_opts['outtmpl'] = os.path.join(library_path,ydl_opts['outtmpl'])
     
     # download_by_artist("UCnh49MovlpQD702w35IqU-Q", library_path) # BABANGIDA
     # download_by_artist("UCzx6KkjhuWLZa_0gt_Y3MAQ", library_path) # LAPA
