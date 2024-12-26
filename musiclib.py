@@ -108,7 +108,9 @@ def get_track_info_genius(track_name, artists_names):
     search_term = f"{artists_names} - {track_name}"
     genius_search_url = f"http://api.genius.com/search?q={search_term}&access_token={api_key.genius_client_access_token}"
 
-    response = requests.get(genius_search_url)
+    response = make_request(genius_search_url)
+    if not response: return {}
+        
     json_data = response.json()
 
     track = json_data['response']['hits'][0]['result']
@@ -170,21 +172,20 @@ def add_tag(audio_path, track_info):
     audio['USLT'] = USLT(encoding=3, lang='eng', desc='', text=track_info['lyrics'])  # Lyrics
 
     if track_info['thumbnail_url']:
-        response = requests.get(track_info['thumbnail_url'])
-        if response.status_code == 200:
-            audio.tags.add(
-                APIC(
-                    encoding=3,  # UTF-8 encoding
-                    mime='image/jpeg',  # MIME type
-                    type=3,  # Cover (front)
-                    desc='Thumbnail',
-                    data=response.content,  # Image data
-                )
-            )
-    else:
-        logging.warning(f"Failed to download image. Status code: {response.status_code}")
+        response = make_request(track_info['thumbnail_url'])
+        if not response:
+            logging.warning(f"Failed to download image. Status code: {response.status_code}")
 
-    
+        audio.tags.add(
+            APIC(
+                encoding=3,  # UTF-8 encoding
+                mime='image/jpeg',  # MIME type
+                type=3,  # Cover (front)
+                desc='Thumbnail',
+                data=response.content,  # Image data
+            )
+        )
+        
     # Save changes
     audio.save()
 
@@ -226,11 +227,11 @@ def download_artist_disocgrapy(artist_name, library_path, prefer_spotify_metadat
 
 
 
-def api_request(url, retries=3, delay=2):
+def make_request(url, retries=3, delay=2):
     for attempt in range(retries):
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
-            return response.json()
+            return response
         else:
             time.sleep(delay)
     return {}
@@ -238,7 +239,7 @@ def api_request(url, retries=3, delay=2):
 def deezer_all_fragments(url):
     all_data = []
     while True:
-        data = api_request(url)
+        data = make_request(url).json()
         all_data.extend(data["data"])
         if "next" in data:
             url = data["next"]
@@ -247,7 +248,12 @@ def deezer_all_fragments(url):
 
 def get_discography_by_artist_deezer(artist_name):
     artist_search_url = f"https://api.deezer.com/search/artist?q={artist_name}"
-    artist_search = api_request(artist_search_url)
+
+    artist_search_request = make_request(artist_search_url)
+    if not artist_search_request: return []
+
+    artist_search = artist_search_request.json()
+     
 
     if not "data" in artist_search or len(artist_search["data"]) == 0:
         return []
