@@ -210,9 +210,10 @@ class MusiclibS(Musiclib):
 
 if __name__ == "__main__":
     library_path = input("Please enter the path for music library: ").strip()
+    artist_name = input("Please enter artist name: ").strip()
 
-    # muslib = Musiclib(library_path)
-    # muslib.download_artist_disocgrapy("Big Baby Tape", library_path) # Big Baby Tape
+    muslib = Musiclib(library_path)
+    muslib.download_artist_disocgrapy(artist_name, library_path)
 
-    muslibS = MusiclibS(library_path)
-    muslibS.download_artist_disocgrapy("Big Baby Tape", library_path) # Big Baby Tape
+    # muslibS = MusiclibS(library_path)
+    # muslibS.download_artist_disocgrapy(artist_name, library_path)
