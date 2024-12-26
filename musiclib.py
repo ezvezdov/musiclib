@@ -314,8 +314,13 @@ def add_lyrics_all(library_path):
 def download_by_artist(artist_id, download_folder):
     url = f"https://music.youtube.com/channel/{artist_id}"
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        # ydl.download([url])
-        channel_metadata = ydl.extract_info(url, download=True)  # Get metadata without downloading
+def download_track_youtube(track_id):
+    # Construct the URL for YouTube Music
+    track_url = f"https://music.youtube.com/watch?v={track_id}"
+
+    # Download using yt-dlp
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([track_url])
 
         if not 'entries' in channel_metadata: return
 
