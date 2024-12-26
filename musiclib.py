@@ -303,15 +303,6 @@ def add_lyrics_all(library_path):
             search_and_add_lyrics(f.path)
 
 
-def download_by_title_youtube(title, artist_name):
-    query = f"ytsearch1:{artist_name} {title}"
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        metadata = ydl.extract_info(query, download=True)
-        # import json
-        # with open("data.json", "w") as json_file:
-        #     json.dump(metadata["entries"], json_file, indent=4)  # Use indent=4 for pretty-printing
-        return metadata["entries"]
-
 
 def download_track_youtube(track_id):
     # Construct the URL for YouTube Music
@@ -331,7 +322,7 @@ def download_artist_disocgrapy(artist_name, library_path, prefer_spotify_metadat
             track_info_spotify = get_track_info_spotify(trackname_remove_unnecessary(track_info['track_name']), ", ".join(track_info['track_artists']))
             if track_info_spotify:
                 track_info = track_info_spotify
-                
+
         
         file_path = os.path.join(library_path, f"{id}{EXT}")
         new_filename = ", ".join(track_info['track_artists']) + " - " + track_info['track_name'] + EXT
