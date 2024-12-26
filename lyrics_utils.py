@@ -19,7 +19,7 @@ def add_lyrics(audio_path):
     track_name = track_name.text[0]
     artists_names = ", ".join(artists.text)
     
-    lrc = get_lyrics(track_name, artists_names)
+    lrc = musiclib.get_lyrics(track_name, artists_names)
     
     # There is no lyrics for this track
     if lrc is None:
