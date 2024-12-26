@@ -19,16 +19,6 @@ def get_lyrics(track_name, artists_names):
     Returns:
         str: The lyrics for the track, either synchronized or plain. Returns an empty
              string if no lyrics are available.
-
-    Logging:
-        - Logs a message indicating whether synchronized or plain lyrics were found.
-        - Logs a message if no lyrics are available for the given track and artist(s).
-
-    Notes:
-        - Synchronized lyrics are prioritized, and providers for both types of lyrics
-          are specified in the function.
-        - Uses the `syncedlyrics` library to fetch lyrics from available providers
-          (e.g., Lrclib, NetEase, Genius).
     """
     lyrics_type = "synchronized"
 
@@ -42,14 +32,19 @@ def get_lyrics(track_name, artists_names):
 
     # There is no lyrics for this track
     if lrc is None:
-        musiclib.logging.info(f"Lyrics: there is no lyrics for {artists_names} - {track_name}")
-        return ""
+        musiclib.logging.degub(f"Lyrics: there is no lyrics for {artists_names} - {track_name}")
+        return None
     
-    musiclib.info(f"Lyrics: {lyrics_type} lyrics saved for {artists_names} - {track_name}")
+    musiclib.debug(f"Lyrics: {lyrics_type} lyrics saved for {artists_names} - {track_name}")
     return lrc.rstrip()
 
 def add_lyrics(audio_path):
-    
+    """
+    Adds lyrics to an audio file using its metadata to retrieve lyrics.
+
+    Args:
+        audio_path (str): Path to the audio file.
+    """
     # Get ID3 of audio
     audioID3 = ID3(audio_path)
 
@@ -61,36 +56,26 @@ def add_lyrics(audio_path):
     if track_name is None or artists is None:
         musiclib.logging.error("ERROR: Unknown title or Artist!")
         return
-
+    
     track_name = track_name.text[0]
     artists_names = ", ".join(artists.text)
     
+    # Get lyrics
     lrc = musiclib.get_lyrics(track_name, artists_names)
     
     # There is no lyrics for this track
-    if lrc is None:
-        musiclib.logging.warning(f"Skip {artists_names} - {track_name}")
-        return
-        
-    
-    clean_lyrics = lrc.rstrip()
+    if lrc is None: return
 
-    audioID3.add(USLT(encoding=3, lang='eng', desc='Lyrics', text=clean_lyrics))
+    # Add lyrics to track
+    audioID3.add(USLT(encoding=3, lang='eng', desc='Lyrics', text=lrc))
     audioID3.save()
 
 def add_lyrics_library(library_path):
     """
     Recursively scans the provided library path and adds lyrics to all audio files.
 
-    This function goes through each file and subdirectory within the specified
-    `library_path`. If a subdirectory is found, it calls itself recursively. 
-    If a file is found, it processes the file by calling the `search_and_add_lyrics` function.
-
     Args:
         library_path (str): The path to the music library directory.
-
-    Returns:
-        None
     """
     for f in os.scandir(library_path):
         if f.is_dir():
