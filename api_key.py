@@ -1,0 +1,2 @@
+spotify_client_id = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+spotify_client_secret = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
