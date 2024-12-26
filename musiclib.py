@@ -23,8 +23,8 @@ logging.basicConfig(
     filemode='w'          # Overwrite ('w') or append ('a') to log file
 )
 
-def trackname_remove_unnecessary(title):
-    name = re.sub(r'\(feat.*?\)|\(ft.*?\)|feat.*|ft.*|\(Feat.*?\)|\(Ft.*?\)|\(prod.*?\)|\[prod.*?\]|\(Prod.*?\)', '', title)
+def trackname_remove_unnecessary(track_name):
+    name = re.sub(r'\(feat.*?\)|\(ft.*?\)|feat.*|ft.*|\(Feat.*?\)|\(Ft.*?\)|\(prod.*?\)|\[prod.*?\]|\(Prod.*?\)', '', track_name)
     return name.rstrip()
 
 
@@ -115,7 +115,7 @@ class Musiclib():
         
         return tracks_metadata
     
-    def get_another_metadata(self, title, artists):
+    def get_another_metadata(self, track_name, artist_name):
         return {}
     
     def download_artist_disocgrapy(self, artist_name, library_path, prefer_spotify_metadata=True):
@@ -158,8 +158,8 @@ class MusiclibS(Musiclib):
         # Authenticate with Spotify
         self.sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=api_key.spotify_client_id, client_secret=api_key.spotify_client_secret))
 
-    def get_another_metadata(self, title, artists):
-        return self.get_track_info_spotify(title, artists)
+    def get_another_metadata(self, track_name, artist_name):
+        return self.get_track_info_spotify(track_name, artist_name)
 
     def get_track_info_spotify(self, track_name, artist_name):
         """
