@@ -1,6 +1,52 @@
 import os
-import musiclib
 from mutagen.id3 import ID3, USLT
+import syncedlyrics
+import musiclib
+
+
+def get_lyrics(track_name, artists_names):
+    """
+    Fetch the lyrics for a given track and artist(s).
+
+    This function attempts to retrieve synchronized lyrics (LRC format) first.
+    If synchronized lyrics are unavailable, it will search for plain text lyrics.
+    If no lyrics are found, an empty string is returned.
+
+    Args:
+        track_name (str): The name of the track for which lyrics are being retrieved.
+        artists_names (str): The name(s) of the artist(s) performing the track.
+
+    Returns:
+        str: The lyrics for the track, either synchronized or plain. Returns an empty
+             string if no lyrics are available.
+
+    Logging:
+        - Logs a message indicating whether synchronized or plain lyrics were found.
+        - Logs a message if no lyrics are available for the given track and artist(s).
+
+    Notes:
+        - Synchronized lyrics are prioritized, and providers for both types of lyrics
+          are specified in the function.
+        - Uses the `syncedlyrics` library to fetch lyrics from available providers
+          (e.g., Lrclib, NetEase, Genius).
+    """
+    lyrics_type = "synchronized"
+
+    # Search for synced lyrics
+    lrc = syncedlyrics.search(f"{artists_names} {track_name}", providers=[ 'Lrclib', 'NetEase'],enhanced=True)
+
+    # Search for plain lyrics
+    if lrc is None:
+        lyrics_type = "plain"
+        lrc = syncedlyrics.search(f"{artists_names} {track_name}", providers=['Genius', 'Lrclib', 'NetEase'])
+
+    # There is no lyrics for this track
+    if lrc is None:
+        musiclib.logging.info(f"Lyrics: there is no lyrics for {artists_names} - {track_name}")
+        return ""
+    
+    musiclib.info(f"Lyrics: {lyrics_type} lyrics saved for {artists_names} - {track_name}")
+    return lrc.rstrip()
 
 def add_lyrics(audio_path):
     
@@ -13,7 +59,7 @@ def add_lyrics(audio_path):
     
     # Skip if there is no information about track
     if track_name is None or artists is None:
-        logging.error("ERROR: Unknown title or Artist!")
+        musiclib.logging.error("ERROR: Unknown title or Artist!")
         return
 
     track_name = track_name.text[0]
@@ -23,7 +69,7 @@ def add_lyrics(audio_path):
     
     # There is no lyrics for this track
     if lrc is None:
-        logging.warning(f"Skip {artists_names} - {track_name}")
+        musiclib.logging.warning(f"Skip {artists_names} - {track_name}")
         return
         
     

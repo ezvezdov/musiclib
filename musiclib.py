@@ -12,6 +12,7 @@ import api_key
 import re 
 import time
 from ytmusicapi import YTMusic
+import lyrics_utils
 
 
 EXT = ".mp3"
@@ -49,49 +50,6 @@ def trackname_remove_unnecessary(title):
     return name.rstrip()
 
 
-def get_lyrics(track_name, artists_names):
-    """
-    Fetch the lyrics for a given track and artist(s).
-
-    This function attempts to retrieve synchronized lyrics (LRC format) first.
-    If synchronized lyrics are unavailable, it will search for plain text lyrics.
-    If no lyrics are found, an empty string is returned.
-
-    Args:
-        track_name (str): The name of the track for which lyrics are being retrieved.
-        artists_names (str): The name(s) of the artist(s) performing the track.
-
-    Returns:
-        str: The lyrics for the track, either synchronized or plain. Returns an empty
-             string if no lyrics are available.
-
-    Logging:
-        - Logs a message indicating whether synchronized or plain lyrics were found.
-        - Logs a message if no lyrics are available for the given track and artist(s).
-
-    Notes:
-        - Synchronized lyrics are prioritized, and providers for both types of lyrics
-          are specified in the function.
-        - Uses the `syncedlyrics` library to fetch lyrics from available providers
-          (e.g., Lrclib, NetEase, Genius).
-    """
-    lyrics_type = "synchronized"
-
-    # Search for synced lyrics
-    lrc = syncedlyrics.search(f"{artists_names} {track_name}", providers=[ 'Lrclib', 'NetEase'],enhanced=True)
-
-    # Search for plain lyrics
-    if lrc is None:
-        lyrics_type = "plain"
-        lrc = syncedlyrics.search(f"{artists_names} {track_name}", providers=['Genius', 'Lrclib', 'NetEase'])
-
-    # There is no lyrics for this track
-    if lrc is None:
-        logging.info(f"Lyrics: there is no lyrics for {artists_names} - {track_name}")
-        return ""
-    
-    logging.info(f"Lyrics: {lyrics_type} lyrics saved for {artists_names} - {track_name}")
-    return lrc.rstrip()
 
 def get_track_info_spotify(track_name, artist_name):
     """
@@ -140,7 +98,7 @@ def get_track_info_spotify(track_name, artist_name):
         track_info['track_number'] = track.get('track_number', -1)
         track_info['total_tracks'] = album.get('total_tracks', -1)
         track_info['album_artists'] = [artist.get('name', '') for artist in album.get('artists', [])]
-        track_info['lyrics'] = get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+        track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
 
         # Safely get the thumbnail URL
         images = album.get('images', [])
@@ -170,7 +128,7 @@ def get_track_info_genius(track_name, artists_names):
     track_info['track_number'] = track.get('track_number', -1)
     track_info['total_tracks'] = -1
     track_info['album_artists'] = track_info['track_artists']
-    track_info['lyrics'] = get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+    track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
 
     track_info['thumbnail_url'] = track['header_image_url']
 
@@ -347,7 +305,7 @@ def get_discography_by_artist_youtube(artist_name):
                 track_info['track_number'] = track['trackNumber']
                 track_info['total_tracks'] = album_details['trackCount']
                 track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]
-                track_info['lyrics'] = get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+                track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
                 track_info['thumbnail_url'] = album_details['thumbnails'][-1]['url']
 
                 tracks_metadata[track['videoId']] = track_info
@@ -365,7 +323,7 @@ def get_discography_by_artist_youtube(artist_name):
             track_info['release_date'] = track['year']
             track_info['total_tracks'] = -1
             track_info['album_artists'] = []
-            track_info['lyrics'] = get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
             track_info['thumbnail_url'] = track['thumbnails'][-1]['url']
 
             tracks_metadata[album_details['tracks'][0]['videoId']] = track_info
