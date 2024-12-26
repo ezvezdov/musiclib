@@ -208,11 +208,12 @@ def add_tag(audio_path, track_info):
     # Load the MP3 file
     audio = MP3(audio_path, ID3=ID3)
 
+    # Clear all existing tags
+    audio.delete()
 
     # Add or update tags
     audio['TIT2'] = TIT2(encoding=3, text=track_info['track_name'])  # Track Name
     audio['TPE1'] = TPE1(encoding=3, text="/".join(track_info['track_artists']))  # Track Artists
-    print("track_artists",track_info['track_artists'])
     audio['TDRC'] = TDRC(encoding=3, text=track_info['release_date'])  # Release Date
 
 
@@ -220,10 +221,6 @@ def add_tag(audio_path, track_info):
         audio['TALB'] = TALB(encoding=3, text=track_info['album_name'])  # Album Name
         audio['TXXX:Album Artist'] = TXXX(encoding=3, desc='Album Artist', text="/".join(track_info['album_artists']))  # Album Artists
         audio['TRCK'] = TRCK(encoding=3, text=f'{track_info['track_number']}/{track_info['total_tracks']}')  # Track Number / Total Tracks
-    # elif track_info['track_number'] > 0:
-    #     audio['TALB'] = TALB(encoding=3, text=track_info['album_name'])  # Album Name
-    #     audio['TXXX:Album Artist'] = TXXX(encoding=3, desc='Album Artist', text=", ".join(track_info['album_artists']))  # Album Artists
-    #     audio['TRCK'] = TRCK(encoding=3, text=f'{track_info['track_number']}')  # Track Number
     
     audio['USLT'] = USLT(encoding=3, lang='eng', desc='', text=track_info['lyrics'])  # Lyrics
 
