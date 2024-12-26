@@ -37,7 +37,7 @@ class Musiclib():
                 '-id3v2_version', '3',  # Use ID3v2.3 tags for maximum compatibility
                 '-b:a', '192k'  # Set audio bitrate to 192 kbps
             ],
-            'quiet': False,  # Show progress and details
+            'quiet': True,  # Show progress and details
         }
 
         self.library_path = library_path
