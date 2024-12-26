@@ -243,15 +243,6 @@ def add_tag(audio_path, track_info):
     # Save changes
     audio.save()
 
-
-def tmp(path):
-    for f in os.scandir(path):
-        if f.is_file():
-            name = f.name[:-4]
-            info = name.split("<|>")
-            inf = get_track_info_spotify(info[-1], info[0])
-            add_tag(f.path,inf)
-
 def search_and_add_lyrics(audio_path):
 
     audioID3 = ID3(audio_path)
@@ -516,6 +507,5 @@ if __name__ == "__main__":
     ydl_opts['outtmpl'] = os.path.join(library_path, ydl_opts['outtmpl'])
     if "download_archive" in ydl_opts:
         ydl_opts['download_archive'] = os.path.join(library_path, ".info", ydl_opts['download_archive'])
-
 
     download_by_artist("Big Baby Tape", library_path) # Big Baby Tape
