@@ -2,7 +2,7 @@ import requests
 import time
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, TIT2, TPE1, TALB, TDRC, TRCK, TXXX, USLT, APIC
-
+import logging_utils
 
 def make_request(url, retries=3, delay=2):
     for attempt in range(retries):
@@ -55,7 +55,7 @@ def add_tag_mp3(audio_path, track_info):
     if track_info['thumbnail_url']:
         response = make_request(track_info['thumbnail_url'])
         if not response:
-            logging.warning(f"Failed to download image. Status code: {response.status_code}")
+            logging_utils.logging.warning(f"Failed to download image. Status code: {response.status_code}")
 
         audio.tags.add(
             APIC(

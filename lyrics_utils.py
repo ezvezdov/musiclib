@@ -1,7 +1,8 @@
 import os
 from mutagen.id3 import ID3, USLT
 import syncedlyrics
-import musiclib
+
+import logging_utils
 
 
 def get_lyrics(track_name, artists_names):
@@ -32,10 +33,10 @@ def get_lyrics(track_name, artists_names):
 
     # There is no lyrics for this track
     if lrc is None:
-        musiclib.logging.debug(f"Lyrics: there is no lyrics for {artists_names} - {track_name}")
+        logging_utils.logging.debug(f"Lyrics: there is no lyrics for {artists_names} - {track_name}")
         return None
     
-    musiclib.logging.debug(f"Lyrics: {lyrics_type} lyrics saved for {artists_names} - {track_name}")
+    logging_utils.logging.debug(f"Lyrics: {lyrics_type} lyrics saved for {artists_names} - {track_name}")
     return lrc.rstrip()
 
 def add_lyrics(audio_path):
@@ -54,14 +55,14 @@ def add_lyrics(audio_path):
     
     # Skip if there is no information about track
     if track_name is None or artists is None:
-        musiclib.logging.error("ERROR: Unknown title or Artist!")
+        logging_utils.logging.error("ERROR: Unknown title or Artist!")
         return
     
     track_name = track_name.text[0]
     artists_names = ", ".join(artists.text)
     
     # Get lyrics
-    lrc = musiclib.get_lyrics(track_name, artists_names)
+    lrc = logging_utils.get_lyrics(track_name, artists_names)
     
     # There is no lyrics for this track
     if lrc is None: return
@@ -80,5 +81,5 @@ def add_lyrics_library(library_path):
     for f in os.scandir(library_path):
         if f.is_dir():
             add_lyrics_library(f.path)
-        elif f.name.lower().endswith(musiclib.EXT):
-            musiclib.search_and_add_lyrics(f.path)
+        elif f.name.lower().endswith(".mp3"): # Hardcoded, only mp3
+            add_lyrics(f.path)

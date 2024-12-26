@@ -1,5 +1,4 @@
 import os
-import logging
 import re
 
 import yt_dlp
@@ -11,17 +10,10 @@ import api_key
 
 import lyrics_utils
 import tag_utils
+import logging_utils
 
 
 EXT = ".mp3"
-
-# Configure basic logging
-logging.basicConfig(
-    level=logging.DEBUG,  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
-    format='%(asctime)s - %(levelname)s - %(message)s',  # Log message format
-    filename='.musiclib.log',   # Log to file, omit for console logging
-    filemode='w'          # Overwrite ('w') or append ('a') to log file
-)
 
 def trackname_remove_unnecessary(track_name):
     name = re.sub(r'\(feat.*?\)|\(ft.*?\)|feat.*|ft.*|\(Feat.*?\)|\(Ft.*?\)|\(prod.*?\)|\[prod.*?\]|\(Prod.*?\)', '', track_name)
@@ -63,9 +55,9 @@ class Musiclib():
         # Create the directory
         try:
             os.makedirs(self.library_path, exist_ok=True)
-            logging.debug(f"Folders created successfully at: {self.library_path}")
+            logging_utils.logging.debug(f"Folders created successfully at: {self.library_path}")
         except Exception as e:
-            logging.error(f"Error creating folders: {e}")
+            logging_utils.logging.error(f"Error creating folders: {e}")
 
         self.ydl_opts['outtmpl'] = os.path.join(self.library_path, self.ydl_opts['outtmpl'])
         if "download_archive" in self.ydl_opts:
@@ -185,7 +177,7 @@ class MusiclibS(Musiclib):
                 - `lyrics` (str): Lyrics of the track.
                 - `thumbnail_url` (str): URL of the album's thumbnail image.
         """
-        logging.debug(f"Get information about track: {artist_name} - {track_name}")
+        logging_utils.logging.debug(f"Get information about track: {artist_name} - {track_name}")
 
         # Construct the query
         query = f"track:{track_name} artist:{artist_name}"
@@ -211,7 +203,7 @@ class MusiclibS(Musiclib):
             track_info['thumbnail_url'] = images[0].get('url', '') if images else ''
 
         else:
-            logging.warning(f"Track {artist_name} - {track_name} was not found.")
+            logging_utils.logging.warning(f"Track {artist_name} - {track_name} was not found.")
         
         return track_info
 
