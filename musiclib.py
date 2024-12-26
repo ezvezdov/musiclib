@@ -116,7 +116,7 @@ class Musiclib():
         
         return tracks_metadata
     
-    def add_tag(self, audio_path, track_info):
+    def add_tag_mp3(self, audio_path, track_info):
         """
         Adds or updates ID3 tags for an MP3 file.
 
@@ -193,7 +193,7 @@ class Musiclib():
                 release_year = track_info['release_date'].split("-")[0]
                 new_path = os.path.join(library_path, track_info['track_artists'][0], f"[{release_year}] {track_info['album_name']}", new_filename)
 
-            self.add_tag(file_path,track_info)
+            self.add_tag_mp3(file_path,track_info)
 
             os.makedirs(os.path.dirname(new_path), exist_ok=True)
             os.rename(file_path, new_path)
