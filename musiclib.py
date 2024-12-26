@@ -255,46 +255,6 @@ def make_request(url, retries=3, delay=2):
             time.sleep(delay)
     return {}
 
-def deezer_all_fragments(url):
-    all_data = []
-    while True:
-        data = make_request(url).json()
-        all_data.extend(data["data"])
-        if "next" in data:
-            url = data["next"]
-        else:
-            return all_data
-
-def get_discography_by_artist_deezer(artist_name):
-    artist_search_url = f"https://api.deezer.com/search/artist?q={artist_name}"
-
-    artist_search_request = make_request(artist_search_url)
-    if not artist_search_request: return []
-
-    artist_search = artist_search_request.json()
-     
-
-    if not "data" in artist_search or len(artist_search["data"]) == 0:
-        return []
-
-
-    artist_id = artist_search["data"][0]["id"]
-    albums_url = f"https://api.deezer.com/artist/{artist_id}/albums"
-    
-    titles = []
-
-    albums = deezer_all_fragments(albums_url)
-    
-    for album in albums:
-        tracks_url = album["tracklist"]
-        tracks = deezer_all_fragments(tracks_url)
-        for track in tracks:
-            title = trackname_remove_unnecessary(track["title"])
-            titles.append(title)
-    
-    return titles
-
-
 
 if __name__ == "__main__":
     library_path = input("Please enter the path for music library: ").strip()
