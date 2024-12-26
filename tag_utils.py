@@ -1,5 +1,17 @@
+import requests
+import time
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, TIT2, TPE1, TALB, TDRC, TRCK, TXXX, USLT, APIC
+
+
+def make_request(url, retries=3, delay=2):
+    for attempt in range(retries):
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            return response
+        else:
+            time.sleep(delay)
+    return {}
 
 def add_tag_mp3(audio_path, track_info):
     """
