@@ -243,45 +243,6 @@ def add_tag(audio_path, track_info):
     # Save changes
     audio.save()
 
-def search_and_add_lyrics(audio_path):
-
-    audioID3 = ID3(audio_path)
-
-    # Extract track name (title) and artist
-    track_name = audioID3.get("TIT2", None)
-    artists = audioID3.get("TPE1", None)
-    
-
-    if track_name is None or artists is None:
-        logging.error("ERROR: Unknown title or Artist!")
-        return
-
-    track_name = track_name.text[0]
-    artists_names = ", ".join(artists.text)
-
-    # Search for synced lyrics
-    # lrc = syncedlyrics.search(f"{artists_names} {track_name}", providers=[ 'Lrclib', 'NetEase'],enhanced=True)
-    lrc = syncedlyrics.search(f"{artists_names} {track_name}")
-
-    # There is only plain lyrics
-    if lrc is None:
-        # Search for synced lyrics
-        lrc = syncedlyrics.search(f"{artists_names} {track_name}", providers=['Genius', 'Lrclib', 'NetEase'])
-
-    # There is no lyrics for this track
-    if lrc is None:
-        print(f"Skip {artists_names} - {track_name}")
-        return
-    
-    clean_lyrics = lrc.rstrip()
-
-    audioID3.add(USLT(encoding=3, lang='eng', desc='Lyrics', text=clean_lyrics))
-    # audioID3.add(USLT(encoding=3, desc='Lyrics', text=lrc))
-    audioID3.save()
-    
-    print(f"Lyrics saved for {artists_names} - {track_name}")
-    # print(lrc)
-
 
 def download_track_youtube(track_id):
     # Construct the URL for YouTube Music
