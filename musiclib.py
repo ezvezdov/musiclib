@@ -1,6 +1,4 @@
 import os
-from mutagen.easyid3 import EasyID3
-from mutagen.id3 import ID3NoHeaderError
 import syncedlyrics
 from mutagen.id3 import SYLT, USLT, Encoding
 import yt_dlp
@@ -13,6 +11,8 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import api_key
 import re 
 import time
+from ytmusicapi import YTMusic
+
 
 EXT = ".mp3"
 # Authenticate with Spotify
@@ -21,7 +21,7 @@ sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=api_key.spo
 ydl_opts = {
     'format': 'bestaudio/best',  # Select the best audio format available
     'outtmpl': '%(id)s.%(ext)s',  # Custom output template
-    'download_archive': 'downloaded_videos.txt',
+    # 'download_archive': 'ydl.txt',
     'retries': 5,  # Retry 5 times for errors
     'postprocessors': [{
         'key': 'FFmpegExtractAudio',
@@ -340,6 +340,7 @@ def download_track_youtube(track_id):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([track_url])
 
+
 def download_by_artist(artist_name, library_path, prefer_spotify_metadata=True):
     downloaded = {}
 
@@ -512,49 +513,9 @@ if __name__ == "__main__":
     except Exception as e:
         logging.warning(f"Error creating folders: {e}")
 
-    ydl_opts['outtmpl'] = os.path.join(library_path,ydl_opts['outtmpl'])
-    
-    # download_by_artist("UCnh49MovlpQD702w35IqU-Q", library_path) # BABANGIDA
-    # download_by_artist("UCzx6KkjhuWLZa_0gt_Y3MAQ", library_path) # LAPA
-    # download_by_artist("UCPfUH32WlUYohFvTqo65GBA", library_path) # Aneezy
-    # download_by_artist("UCxtUPmgn4pinQhVHLdKau9A", library_path) # Dima Ermuzevic
-    download_by_artist("UCqhjJO7w2rv5Tkk7ZFYl7QA", library_path) # Big Baby Tape
-    # download_by_artist("UCet06fFav7tnvdauZw7EwTA", library_path) # Oxxxymiron
-
-    
-    # tmp(library_path)
-
-    # for artist_dir in os.scandir(library_path):
-
-    #     # Skip non-artist
-    #     if not artist_dir.is_dir(): continue
-
-    #     # Set variables
-    #     artist_name = artist_dir.name
-    #     album_artist = artist_name
-
-    #     for album_dir in os.scandir(artist_dir):
-    #         # Skip singles
-    #         if not album_dir.is_dir(): continue
-
-    #         print(album_dir.path)
-    #         for album_track in os.scandir(album_dir):
-    #             if album_track.name.lower().endswith(".mp3"):
-    #                 file_path = album_track.path
-    #                 try:
-    #                     audio = EasyID3(file_path)
-    #                 except ID3NoHeaderError:
-    #                     audio = EasyID3()  # Create if missing
-    #                     audio.save(file_path)
-                        
-
-    #                 audio['albumartist'] = album_artist
-    #                 audio.save()
-    #                 print(f"Updated: {album_track.name}")
+    ydl_opts['outtmpl'] = os.path.join(library_path, ydl_opts['outtmpl'])
+    if "download_archive" in ydl_opts:
+        ydl_opts['download_archive'] = os.path.join(library_path, ".info", ydl_opts['download_archive'])
 
 
-        # print(info)
-        # # Write JSON to file
-        # import json
-        # with open("data.json", "w") as json_file:
-        #     json.dump(info, json_file, indent=4)  # Use indent=4 for pretty-printing
+    download_by_artist("Big Baby Tape", library_path) # Big Baby Tape
