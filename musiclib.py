@@ -122,7 +122,7 @@ class Musiclib():
         
         return tracks_metadata
     
-    def get_metadata_another_metadata(self, title, artists):
+    def get_another_metadata(self, title, artists):
         return {}
     
     def download_artist_disocgrapy(self, artist_name, library_path, prefer_spotify_metadata=True):
@@ -131,7 +131,7 @@ class Musiclib():
         for id, track_info in track_metadata.items():
             self.download_track_youtube(id)
 
-            track_info_another = self.get_metadata_another_metadata(track_info['track_name'], ", ".join(track_info['track_artists']))
+            track_info_another = self.get_another_metadata(track_info['track_name'], ", ".join(track_info['track_artists']))
             if track_info_another:
                 track_info = track_info_another
             
