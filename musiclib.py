@@ -311,9 +311,27 @@ def add_lyrics_all(library_path):
         elif f.name.lower().endswith(EXT):
             search_and_add_lyrics(f.path)
 
-def download_by_artist(artist_id, download_folder):
-    url = f"https://music.youtube.com/channel/{artist_id}"
+# def youtube_get_artist_id(artist_name):
+#     search_query = f"ytsearch:{artist_name} site:music.youtube.com"
+#     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+#         search_results = ydl.extract_info(search_query, download=False)
+#     print(search_results)
+
+#     artist_id = search_results['entries'][0]['channel_id']
+
+#     return artist_id
+
+
+def download_by_title_youtube(title, artist_name):
+    query = f"ytsearch1:{artist_name} {title}"
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        metadata = ydl.extract_info(query, download=True)
+        # import json
+        # with open("data.json", "w") as json_file:
+        #     json.dump(metadata["entries"], json_file, indent=4)  # Use indent=4 for pretty-printing
+        return metadata["entries"]
+
+
 def download_track_youtube(track_id):
     # Construct the URL for YouTube Music
     track_url = f"https://music.youtube.com/watch?v={track_id}"
