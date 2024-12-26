@@ -122,17 +122,18 @@ class Musiclib():
         
         return tracks_metadata
     
+    def get_metadata_another_metadata(self, title, artists):
+        return {}
     
     def download_artist_disocgrapy(self, artist_name, library_path, prefer_spotify_metadata=True):
         track_metadata = self.get_discography_by_artist_youtube(artist_name)
 
         for id, track_info in track_metadata.items():
             self.download_track_youtube(id)
-            if prefer_spotify_metadata:
-                track_info_spotify = get_track_info_spotify(trackname_remove_unnecessary(track_info['track_name']), ", ".join(track_info['track_artists']))
-                if track_info_spotify:
-                    track_info = track_info_spotify
 
+            track_info_another = self.get_metadata_another_metadata(track_info['track_name'], ", ".join(track_info['track_artists']))
+            if track_info_another:
+                track_info = track_info_another
             
             file_path = os.path.join(library_path, f"{id}{EXT}")
             new_filename = ", ".join(track_info['track_artists']) + " - " + track_info['track_name'] + EXT
