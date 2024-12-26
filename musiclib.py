@@ -322,54 +322,16 @@ def download_track_youtube(track_id):
         ydl.download([track_url])
 
 
-def download_by_artist(artist_name, library_path, prefer_spotify_metadata=True):
-    downloaded = {}
-
-    # artist_id = youtube_get_artist_id(artist_name)
-
-    # url = f"https://music.youtube.com/channel/{artist_id}"
-    # with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-    #     channel_metadata = ydl.extract_info(url, download=True)  # Get metadata without downloading
-
-    # if not 'entries' in channel_metadata: return
-    
-    # Deezer, get discography
-    # titles = get_discography_by_artist_deezer(artist_name)
-    # for title in titles:
-    #     entry = download_by_title_youtube(title, artist_name)
-    #     if entry['id'] in downloaded:
-    #         downloaded[entry['id']].append([title, artist_name]) 
-    #     else:
-    #         downloaded[entry['id']] = [[title, artist_name]]
-
-    # YouTube music, get discography
+def download_artist_disocgrapy(artist_name, library_path, prefer_spotify_metadata=True):
     track_metadata = get_discography_by_artist_youtube(artist_name)
-    # for track_id, track_info in track_metadata.items():
-    #     track_url = f"https://music.youtube.com/watch?v={track_id}"
-
-    #     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-    #         ydl.download([track_url])
-        
-
-    # for entry in channel_metadata['entries']:
-    #     title = trackname_remove_unnecessary(entry['title'])
-    #     if entry['id'] in downloaded:
-    #         downloaded[entry['id']].append([title, artist_name]) 
-    #     else:
-    #         downloaded[entry['id']] = [[title, artist_name]]
-
 
     for id, track_info in track_metadata.items():
         download_track_youtube(id)
-        # track_info = {}
-        # for title in info:
         if prefer_spotify_metadata:
             track_info_spotify = get_track_info_spotify(trackname_remove_unnecessary(track_info['track_name']), ", ".join(track_info['track_artists']))
             if track_info_spotify:
                 track_info = track_info_spotify
-
-
-            # if not track_info: continue
+                
         
         file_path = os.path.join(library_path, f"{id}{EXT}")
         new_filename = ", ".join(track_info['track_artists']) + " - " + track_info['track_name'] + EXT
@@ -498,4 +460,4 @@ if __name__ == "__main__":
     if "download_archive" in ydl_opts:
         ydl_opts['download_archive'] = os.path.join(library_path, ".info", ydl_opts['download_archive'])
 
-    download_by_artist("Big Baby Tape", library_path) # Big Baby Tape
+    download_artist_disocgrapy("Big Baby Tape", library_path) # Big Baby Tape
