@@ -1,6 +1,5 @@
 import os
-import syncedlyrics
-from mutagen.id3 import SYLT, USLT, Encoding
+from mutagen.id3 import USLT
 import yt_dlp
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, TIT2, TPE1, TALB, TDRC, TRCK, TXXX, USLT, APIC
@@ -74,12 +73,8 @@ def get_track_info_spotify(track_name, artist_name):
             - `album_artists` (list[str]): List of artists credited for the album.
             - `lyrics` (str): Lyrics of the track.
             - `thumbnail_url` (str): URL of the album's thumbnail image.
-
-    Logging:
-        - Logs the track details if the track is found.
-        - Logs a message if the track is not found.
     """
-    logging.info(f"Get information about track: {artist_name} - {track_name}")
+    logging.debug(f"Get information about track: {artist_name} - {track_name}")
 
     # Construct the query
     query = f"track:{track_name} artist:{artist_name}"
@@ -154,14 +149,6 @@ def add_tag(audio_path, track_info):
             - `total_tracks` (int): Total number of tracks in the album.
             - `lyrics` (str): Lyrics of the track.
             - `thumbnail_url` (str, optional): URL of the album's thumbnail image.
-
-    Notes:
-        - Adds synchronized lyrics if available in the `lyrics` key.
-        - Adds album artwork if a valid URL is provided in `thumbnail_url`.
-        - Ensures the MP3 file's metadata is saved after modification.
-
-    Logging:
-        - Logs a warning if the thumbnail image cannot be downloaded.
     """
     # Load the MP3 file
     audio = MP3(audio_path, ID3=ID3)
@@ -341,9 +328,9 @@ if __name__ == "__main__":
     # Create the directory
     try:
         os.makedirs(library_path, exist_ok=True)
-        logging.info(f"Folders created successfully at: {library_path}")
+        logging.debug(f"Folders created successfully at: {library_path}")
     except Exception as e:
-        logging.warning(f"Error creating folders: {e}")
+        logging.error(f"Error creating folders: {e}")
 
     ydl_opts['outtmpl'] = os.path.join(library_path, ydl_opts['outtmpl'])
     if "download_archive" in ydl_opts:
