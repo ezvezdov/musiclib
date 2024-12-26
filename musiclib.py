@@ -19,22 +19,7 @@ EXT = ".mp3"
 # Authenticate with Spotify
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=api_key.spotify_client_id, client_secret=api_key.spotify_client_secret))
 
-ydl_opts = {
-    'format': 'bestaudio/best',  # Select the best audio format available
-    'outtmpl': '%(id)s.%(ext)s',  # Custom output template
-    # 'download_archive': 'ydl.txt',
-    'retries': 5,  # Retry 5 times for errors
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'mp3',  # Set preferred codec to MP3
-        'preferredquality': '192',  # Set preferred quality (in kbps)
-    }],
-    'postprocessor_args': [
-        '-id3v2_version', '3',  # Use ID3v2.3 tags for maximum compatibility
-        '-b:a', '192k'  # Set audio bitrate to 192 kbps
-    ],
-    'quiet': False,  # Show progress and details
-    }
+
 
 
 # Configure basic logging
@@ -52,15 +37,35 @@ def trackname_remove_unnecessary(title):
 
 class Musiclib():
     def __init__(self, library_path):
+
+        self.ydl_opts = {
+            'format': 'bestaudio/best',  # Select the best audio format available
+            'outtmpl': '%(id)s.%(ext)s',  # Custom output template
+            # 'download_archive': 'ydl.txt',
+            'retries': 5,  # Retry 5 times for errors
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',  # Set preferred codec to MP3
+                'preferredquality': '192',  # Set preferred quality (in kbps)
+            }],
+            'postprocessor_args': [
+                '-id3v2_version', '3',  # Use ID3v2.3 tags for maximum compatibility
+                '-b:a', '192k'  # Set audio bitrate to 192 kbps
+            ],
+            'quiet': False,  # Show progress and details
+        }
+
         self.library_path = library_path
         self.init_library()
 
         self.ytmusic = YTMusic()
+
+        
     
     def init_library(self):
 
         # Ensure the path ends with a slash (optional)
-        library_path = os.path.join(self.library_path, '')
+        self.library_path = os.path.join(self.library_path, '')
 
         # Create the directory
         try:
@@ -69,9 +74,9 @@ class Musiclib():
         except Exception as e:
             logging.error(f"Error creating folders: {e}")
 
-        ydl_opts['outtmpl'] = os.path.join(self.library_path, ydl_opts['outtmpl'])
-        if "download_archive" in ydl_opts:
-            ydl_opts['download_archive'] = os.path.join(self.library_path, ".info", ydl_opts['download_archive'])
+        self.ydl_opts['outtmpl'] = os.path.join(self.library_path, self.ydl_opts['outtmpl'])
+        if "download_archive" in self.ydl_opts:
+            self.ydl_opts['download_archive'] = os.path.join(self.library_path, ".info", self.ydl_opts['download_archive'])
 
     def get_discography_by_artist_youtube(self,artist_name):
         search_results = self.ytmusic.search(artist_name, filter="artists")
@@ -143,12 +148,12 @@ class Musiclib():
             os.makedirs(os.path.dirname(new_path), exist_ok=True)
             os.rename(file_path, new_path)
 
-    def download_track_youtube(track_id):
+    def download_track_youtube(self,track_id):
         # Construct the URL for YouTube Music
         track_url = f"https://music.youtube.com/watch?v={track_id}"
 
         # Download using yt-dlp
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
             ydl.download([track_url])
 
 
