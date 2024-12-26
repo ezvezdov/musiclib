@@ -49,6 +49,164 @@ def trackname_remove_unnecessary(title):
     return name.rstrip()
 
 
+class Musiclib():
+    def __init__(self, library_path):
+        self.library_path = library_path
+        self.init_library()
+
+        self.ytmusic = YTMusic()
+    
+    def init_library(self):
+
+        # Ensure the path ends with a slash (optional)
+        library_path = os.path.join(library_path, '')
+
+        # Create the directory
+        try:
+            os.makedirs(self.library_path, exist_ok=True)
+            logging.debug(f"Folders created successfully at: {self.library_path}")
+        except Exception as e:
+            logging.error(f"Error creating folders: {e}")
+
+        ydl_opts['outtmpl'] = os.path.join(self.library_path, ydl_opts['outtmpl'])
+        if "download_archive" in ydl_opts:
+            ydl_opts['download_archive'] = os.path.join(self.library_path, ".info", ydl_opts['download_archive'])
+
+    def get_discography_by_artist_youtube(self,artist_name):
+        search_results = self.ytmusic.search(artist_name, filter="artists")
+        if not search_results:
+            return {}
+        
+        artist_browse_id = search_results[0]['browseId']
+        artist_details = self.ytmusic.get_artist(artist_browse_id)
+
+        tracks_metadata = {}
+
+        if "albums" in artist_details:
+            for album in artist_details['albums']['results']:
+                album_details = self.ytmusic.get_album(album['browseId'])
+                for track in album_details['tracks']:        
+                    track_info = {}
+                    track_info['track_name'] = trackname_remove_unnecessary(track['title'])
+                    track_info['track_artists'] = [artist['name'] for artist in track['artists']]
+                    track_info['album_name'] = album_details['title']
+                    track_info['release_date'] = album_details['year']
+                    track_info['track_number'] = track['trackNumber']
+                    track_info['total_tracks'] = album_details['trackCount']
+                    track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]
+                    track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+                    track_info['thumbnail_url'] = album_details['thumbnails'][-1]['url']
+
+                    tracks_metadata[track['videoId']] = track_info
+        if "singles" in artist_details:
+            for track in artist_details['singles']['results']:
+
+                album_details = self.ytmusic.get_album(track['browseId'])
+
+                track_info = {}
+                track_info['track_name'] = trackname_remove_unnecessary(track['title'])
+                track_info['track_artists'] = [artist['name'] for artist in album_details['artists']]
+                track_info['release_date'] = track['year']
+                track_info['total_tracks'] = -1
+                track_info['album_artists'] = []
+                track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+                track_info['thumbnail_url'] = track['thumbnails'][-1]['url']
+
+                tracks_metadata[album_details['tracks'][0]['videoId']] = track_info
+        
+        return tracks_metadata
+    
+    def add_tag(self, audio_path, track_info):
+        """
+        Adds or updates ID3 tags for an MP3 file.
+
+        This function writes metadata such as track name, artists, album details, 
+        release date, lyrics, and album artwork to the specified MP3 file.
+
+        Args:
+            audio_path (str): Path to the MP3 file to be updated.
+            track_info (dict): Dictionary containing track information with the following keys:
+                - `track_name` (str): Name of the track.
+                - `track_artists` (list[str]): List of artists who performed the track.
+                - `release_date` (str): Release date of the track.
+                - `album_name` (str, optional): Name of the album containing the track.
+                - `album_artists` (list[str], optional): List of artists credited for the album.
+                - `track_number` (int): Track's position in the album.
+                - `total_tracks` (int): Total number of tracks in the album.
+                - `lyrics` (str): Lyrics of the track.
+                - `thumbnail_url` (str, optional): URL of the album's thumbnail image.
+        """
+        # Load the MP3 file
+        audio = MP3(audio_path, ID3=ID3)
+
+        # Clear all existing tags
+        audio.delete()
+
+        # Add or update tags
+        audio['TIT2'] = TIT2(encoding=3, text=track_info['track_name'])  # Track Name
+        audio['TPE1'] = TPE1(encoding=3, text="/".join(track_info['track_artists']))  # Track Artists
+        audio['TDRC'] = TDRC(encoding=3, text=track_info['release_date'])  # Release Date
+
+
+        if track_info['total_tracks'] > 1:
+            audio['TALB'] = TALB(encoding=3, text=track_info['album_name'])  # Album Name
+            audio['TXXX:Album Artist'] = TXXX(encoding=3, desc='Album Artist', text="/".join(track_info['album_artists']))  # Album Artists
+            audio['TRCK'] = TRCK(encoding=3, text=f'{track_info['track_number']}/{track_info['total_tracks']}')  # Track Number / Total Tracks
+        
+        audio['USLT'] = USLT(encoding=3, lang='eng', desc='', text=track_info['lyrics'])  # Lyrics
+
+        if track_info['thumbnail_url']:
+            response = make_request(track_info['thumbnail_url'])
+            if not response:
+                logging.warning(f"Failed to download image. Status code: {response.status_code}")
+
+            audio.tags.add(
+                APIC(
+                    encoding=3,  # UTF-8 encoding
+                    mime='image/jpeg',  # MIME type
+                    type=3,  # Cover (front)
+                    desc='Thumbnail',
+                    data=response.content,  # Image data
+                )
+            )
+            
+        # Save changes
+        audio.save()
+    
+    def download_artist_disocgrapy(self, artist_name, library_path, prefer_spotify_metadata=True):
+        track_metadata = self.get_discography_by_artist_youtube(artist_name)
+
+        for id, track_info in track_metadata.items():
+            self.download_track_youtube(id)
+            if prefer_spotify_metadata:
+                track_info_spotify = get_track_info_spotify(trackname_remove_unnecessary(track_info['track_name']), ", ".join(track_info['track_artists']))
+                if track_info_spotify:
+                    track_info = track_info_spotify
+
+            
+            file_path = os.path.join(library_path, f"{id}{EXT}")
+            new_filename = ", ".join(track_info['track_artists']) + " - " + track_info['track_name'] + EXT
+
+            new_path = os.path.join(library_path, track_info['track_artists'][0], new_filename)
+            if track_info['total_tracks'] > 1:
+                new_filename = f"{track_info['track_number']}. {new_filename}"
+                release_year = track_info['release_date'].split("-")[0]
+                new_path = os.path.join(library_path, track_info['track_artists'][0], f"[{release_year}] {track_info['album_name']}", new_filename)
+
+            self.add_tag(file_path,track_info)
+
+            os.makedirs(os.path.dirname(new_path), exist_ok=True)
+            os.rename(file_path, new_path)
+
+    def download_track_youtube(track_id):
+        # Construct the URL for YouTube Music
+        track_url = f"https://music.youtube.com/watch?v={track_id}"
+
+        # Download using yt-dlp
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([track_url])
+
+
 
 def get_track_info_spotify(track_name, artist_name):
     """
@@ -132,97 +290,7 @@ def get_track_info_genius(track_name, artists_names):
     return track_info
 
 
-def add_tag(audio_path, track_info):
-    """
-    Adds or updates ID3 tags for an MP3 file.
 
-    This function writes metadata such as track name, artists, album details, 
-    release date, lyrics, and album artwork to the specified MP3 file.
-
-    Args:
-        audio_path (str): Path to the MP3 file to be updated.
-        track_info (dict): Dictionary containing track information with the following keys:
-            - `track_name` (str): Name of the track.
-            - `track_artists` (list[str]): List of artists who performed the track.
-            - `release_date` (str): Release date of the track.
-            - `album_name` (str, optional): Name of the album containing the track.
-            - `album_artists` (list[str], optional): List of artists credited for the album.
-            - `track_number` (int): Track's position in the album.
-            - `total_tracks` (int): Total number of tracks in the album.
-            - `lyrics` (str): Lyrics of the track.
-            - `thumbnail_url` (str, optional): URL of the album's thumbnail image.
-    """
-    # Load the MP3 file
-    audio = MP3(audio_path, ID3=ID3)
-
-    # Clear all existing tags
-    audio.delete()
-
-    # Add or update tags
-    audio['TIT2'] = TIT2(encoding=3, text=track_info['track_name'])  # Track Name
-    audio['TPE1'] = TPE1(encoding=3, text="/".join(track_info['track_artists']))  # Track Artists
-    audio['TDRC'] = TDRC(encoding=3, text=track_info['release_date'])  # Release Date
-
-
-    if track_info['total_tracks'] > 1:
-        audio['TALB'] = TALB(encoding=3, text=track_info['album_name'])  # Album Name
-        audio['TXXX:Album Artist'] = TXXX(encoding=3, desc='Album Artist', text="/".join(track_info['album_artists']))  # Album Artists
-        audio['TRCK'] = TRCK(encoding=3, text=f'{track_info['track_number']}/{track_info['total_tracks']}')  # Track Number / Total Tracks
-    
-    audio['USLT'] = USLT(encoding=3, lang='eng', desc='', text=track_info['lyrics'])  # Lyrics
-
-    if track_info['thumbnail_url']:
-        response = make_request(track_info['thumbnail_url'])
-        if not response:
-            logging.warning(f"Failed to download image. Status code: {response.status_code}")
-
-        audio.tags.add(
-            APIC(
-                encoding=3,  # UTF-8 encoding
-                mime='image/jpeg',  # MIME type
-                type=3,  # Cover (front)
-                desc='Thumbnail',
-                data=response.content,  # Image data
-            )
-        )
-        
-    # Save changes
-    audio.save()
-
-
-def download_track_youtube(track_id):
-    # Construct the URL for YouTube Music
-    track_url = f"https://music.youtube.com/watch?v={track_id}"
-
-    # Download using yt-dlp
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([track_url])
-
-
-def download_artist_disocgrapy(artist_name, library_path, prefer_spotify_metadata=True):
-    track_metadata = get_discography_by_artist_youtube(artist_name)
-
-    for id, track_info in track_metadata.items():
-        download_track_youtube(id)
-        if prefer_spotify_metadata:
-            track_info_spotify = get_track_info_spotify(trackname_remove_unnecessary(track_info['track_name']), ", ".join(track_info['track_artists']))
-            if track_info_spotify:
-                track_info = track_info_spotify
-
-        
-        file_path = os.path.join(library_path, f"{id}{EXT}")
-        new_filename = ", ".join(track_info['track_artists']) + " - " + track_info['track_name'] + EXT
-
-        new_path = os.path.join(library_path, track_info['track_artists'][0], new_filename)
-        if track_info['total_tracks'] > 1:
-            new_filename = f"{track_info['track_number']}. {new_filename}"
-            release_year = track_info['release_date'].split("-")[0]
-            new_path = os.path.join(library_path, track_info['track_artists'][0], f"[{release_year}] {track_info['album_name']}", new_filename)
-
-        add_tag(file_path,track_info)
-
-        os.makedirs(os.path.dirname(new_path), exist_ok=True)
-        os.rename(file_path, new_path)
 
 
 
@@ -275,71 +343,10 @@ def get_discography_by_artist_deezer(artist_name):
     
     return titles
 
-def get_discography_by_artist_youtube(artist_name):
-    ytmusic = YTMusic()
-    search_results = ytmusic.search(artist_name, filter="artists")
-    if not search_results:
-        return {}
-    
-    artist_browse_id = search_results[0]['browseId']
-    artist_details = ytmusic.get_artist(artist_browse_id)
-
-    tracks_metadata = {}
-
-    if "albums" in artist_details:
-        for album in artist_details['albums']['results']:
-            album_details = ytmusic.get_album(album['browseId'])
-            for track in album_details['tracks']:        
-                track_info = {}
-                track_info['track_name'] = trackname_remove_unnecessary(track['title'])
-                track_info['track_artists'] = [artist['name'] for artist in track['artists']]
-                track_info['album_name'] = album_details['title']
-                track_info['release_date'] = album_details['year']
-                track_info['track_number'] = track['trackNumber']
-                track_info['total_tracks'] = album_details['trackCount']
-                track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]
-                track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
-                track_info['thumbnail_url'] = album_details['thumbnails'][-1]['url']
-
-                tracks_metadata[track['videoId']] = track_info
-    if "singles" in artist_details:
-        for track in artist_details['singles']['results']:
-
-            album_details = ytmusic.get_album(track['browseId'])
-            import json
-            with open("data.json", "w") as json_file:
-                json.dump(album_details, json_file, indent=4)  # Use indent=4 for pretty-printing
-
-            track_info = {}
-            track_info['track_name'] = trackname_remove_unnecessary(track['title'])
-            track_info['track_artists'] = [artist['name'] for artist in album_details['artists']]
-            track_info['release_date'] = track['year']
-            track_info['total_tracks'] = -1
-            track_info['album_artists'] = []
-            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
-            track_info['thumbnail_url'] = track['thumbnails'][-1]['url']
-
-            tracks_metadata[album_details['tracks'][0]['videoId']] = track_info
-    
-    return tracks_metadata
-
 
 
 if __name__ == "__main__":
     library_path = input("Please enter the path for music library: ").strip()
-    
-    # Ensure the path ends with a slash (optional)
-    library_path = os.path.join(library_path, '')
 
-    # Create the directory
-    try:
-        os.makedirs(library_path, exist_ok=True)
-        logging.debug(f"Folders created successfully at: {library_path}")
-    except Exception as e:
-        logging.error(f"Error creating folders: {e}")
-
-    ydl_opts['outtmpl'] = os.path.join(library_path, ydl_opts['outtmpl'])
-    if "download_archive" in ydl_opts:
-        ydl_opts['download_archive'] = os.path.join(library_path, ".info", ydl_opts['download_archive'])
-
-    download_artist_disocgrapy("Big Baby Tape", library_path) # Big Baby Tape
+    muslib = Musiclib(library_path)
+    muslib.download_artist_disocgrapy("Big Baby Tape", library_path) # Big Baby Tape
