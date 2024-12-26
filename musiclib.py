@@ -302,16 +302,6 @@ def add_lyrics_all(library_path):
         elif f.name.lower().endswith(EXT):
             search_and_add_lyrics(f.path)
 
-# def youtube_get_artist_id(artist_name):
-#     search_query = f"ytsearch:{artist_name} site:music.youtube.com"
-#     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-#         search_results = ydl.extract_info(search_query, download=False)
-#     print(search_results)
-
-#     artist_id = search_results['entries'][0]['channel_id']
-
-#     return artist_id
-
 
 def download_by_title_youtube(title, artist_name):
     query = f"ytsearch1:{artist_name} {title}"
