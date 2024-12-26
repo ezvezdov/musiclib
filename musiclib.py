@@ -45,7 +45,7 @@ logging.basicConfig(
 )
 
 def trackname_remove_unnecessary(title):
-    name = re.sub(r'\(feat.*?\)|\(ft.*?\)|\(prod.*?\)|\[prod.*?\]', '', title)
+    name = re.sub(r'\(feat.*?\)|\(ft.*?\)|feat.*|ft.*|\(Feat.*?\)|\(Ft.*?\)|\(prod.*?\)|\[prod.*?\]|\(Prod.*?\)', '', title)
     return name.rstrip()
 
 
