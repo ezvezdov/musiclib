@@ -322,51 +322,70 @@ def download_track_youtube(track_id):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([track_url])
 
-        if not 'entries' in channel_metadata: return
+def download_by_artist(artist_name, library_path, prefer_spotify_metadata=True):
+    downloaded = {}
 
-        video_metadata_list = []
-        for entry in channel_metadata['entries']:
+    # artist_id = youtube_get_artist_id(artist_name)
 
+    # url = f"https://music.youtube.com/channel/{artist_id}"
+    # with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    #     channel_metadata = ydl.extract_info(url, download=True)  # Get metadata without downloading
 
-            entry_title = trackname_remove_unnecessary(entry['title'])
-            entry_artists = ", ".join(entry['artists'])
+    # if not 'entries' in channel_metadata: return
+    
+    # Deezer, get discography
+    # titles = get_discography_by_artist_deezer(artist_name)
+    # for title in titles:
+    #     entry = download_by_title_youtube(title, artist_name)
+    #     if entry['id'] in downloaded:
+    #         downloaded[entry['id']].append([title, artist_name]) 
+    #     else:
+    #         downloaded[entry['id']] = [[title, artist_name]]
 
-            print("entry_title", entry_title)
-            print("entry_artists", entry['artists'][0])
+    # YouTube music, get discography
+    track_metadata = get_discography_by_artist_youtube(artist_name)
+    # for track_id, track_info in track_metadata.items():
+    #     track_url = f"https://music.youtube.com/watch?v={track_id}"
 
-            track_info = get_track_info_spotify(entry_title, entry_artists)
-            
-            if not track_info:
-                track_info_genius = get_track_info_genius(entry_title, entry_artists)
-            
-                if track_info_genius:
-                    track_info = track_info_genius
-                    track_info_spotify = get_track_info_spotify(track_info_genius['track_name'], ", ".join(track_info_genius['track_artists']))
-                    if track_info_spotify:
-                        track_info = track_info_spotify
+    #     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    #         ydl.download([track_url])
+        
 
-            
-            # Process the video (e.g., download or extract metadata)
-            # ydl.download([track_url])
-
-            
-
-            file_path = os.path.join(library_path, entry['id']+EXT)
-            new_filename = ", ".join(track_info['track_artists']) + " - " + track_info['track_name'] + EXT
-
-            new_path = os.path.join(library_path, track_info['track_artists'][0], new_filename)
-            if track_info['total_tracks'] > 1:
-                new_filename = f"{track_info['track_number']}. {new_filename}"
-                release_year = track_info['release_date'].split("-")[0]
-                new_path = os.path.join(library_path, track_info['track_artists'][0], f"[{release_year}] {track_info['album_name']}", new_filename)
-
-            add_tag(file_path,track_info)
-
-            os.makedirs(os.path.dirname(new_path), exist_ok=True)
-            os.rename(file_path, new_path)
+    # for entry in channel_metadata['entries']:
+    #     title = trackname_remove_unnecessary(entry['title'])
+    #     if entry['id'] in downloaded:
+    #         downloaded[entry['id']].append([title, artist_name]) 
+    #     else:
+    #         downloaded[entry['id']] = [[title, artist_name]]
 
 
-        return video_metadata_list
+    for id, track_info in track_metadata.items():
+        download_track_youtube(id)
+        # track_info = {}
+        # for title in info:
+        if prefer_spotify_metadata:
+            track_info_spotify = get_track_info_spotify(trackname_remove_unnecessary(track_info['track_name']), ", ".join(track_info['track_artists']))
+            if track_info_spotify:
+                track_info = track_info_spotify
+
+
+            # if not track_info: continue
+        
+        file_path = os.path.join(library_path, f"{id}{EXT}")
+        new_filename = ", ".join(track_info['track_artists']) + " - " + track_info['track_name'] + EXT
+
+        new_path = os.path.join(library_path, track_info['track_artists'][0], new_filename)
+        if track_info['total_tracks'] > 1:
+            new_filename = f"{track_info['track_number']}. {new_filename}"
+            release_year = track_info['release_date'].split("-")[0]
+            new_path = os.path.join(library_path, track_info['track_artists'][0], f"[{release_year}] {track_info['album_name']}", new_filename)
+
+        add_tag(file_path,track_info)
+
+        os.makedirs(os.path.dirname(new_path), exist_ok=True)
+        os.rename(file_path, new_path)
+
+
 
 
 def api_request(url, retries=3, delay=2):
