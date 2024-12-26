@@ -30,6 +30,15 @@ logging.basicConfig(
     filemode='w'          # Overwrite ('w') or append ('a') to log file
 )
 
+def make_request(url, retries=3, delay=2):
+    for attempt in range(retries):
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            return response
+        else:
+            time.sleep(delay)
+    return {}
+
 def trackname_remove_unnecessary(title):
     name = re.sub(r'\(feat.*?\)|\(ft.*?\)|feat.*|ft.*|\(Feat.*?\)|\(Ft.*?\)|\(prod.*?\)|\[prod.*?\]|\(Prod.*?\)', '', title)
     return name.rstrip()
@@ -246,14 +255,7 @@ def get_track_info_genius(track_name, artists_names):
 
 
 
-def make_request(url, retries=3, delay=2):
-    for attempt in range(retries):
-        response = requests.get(url, timeout=10)
-        if response.status_code == 200:
-            return response
-        else:
-            time.sleep(delay)
-    return {}
+
 
 
 if __name__ == "__main__":
