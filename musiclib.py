@@ -410,7 +410,6 @@ def deezer_all_fragments(url):
 def get_discography_by_artist_deezer(artist_name):
     artist_search_url = f"https://api.deezer.com/search/artist?q={artist_name}"
     artist_search = api_request(artist_search_url)
-    print(artist_search)
 
     if not "data" in artist_search or len(artist_search["data"]) == 0:
         return []
@@ -419,11 +418,6 @@ def get_discography_by_artist_deezer(artist_name):
     artist_id = artist_search["data"][0]["id"]
     albums_url = f"https://api.deezer.com/artist/{artist_id}/albums"
     
-    # import json
-    # with open("data.json", "w") as json_file:
-    #     json.dump(data, json_file, indent=4)  # Use indent=4 for pretty-printing
-    
-
     titles = []
 
     albums = deezer_all_fragments(albums_url)
@@ -435,6 +429,8 @@ def get_discography_by_artist_deezer(artist_name):
             title = trackname_remove_unnecessary(track["title"])
             titles.append(title)
     
+    return titles
+
 def get_discography_by_artist_youtube(artist_name):
     ytmusic = YTMusic()
     search_results = ytmusic.search(artist_name, filter="artists")
