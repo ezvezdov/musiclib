@@ -5,6 +5,8 @@ Music is downloaded from YouTube and music tags are constructed using YouTube/Sp
 
 # Instalation
 ```bash
+git clone https://github.com/ezvezdov/musiclib
+cd musiclib/
 python -m venv .venv
 source .venv/bin/activate
 pip install yt_dlp ytmusicapi spotipy mutagen syncedlyrics
