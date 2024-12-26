@@ -1,17 +1,18 @@
 import os
-from mutagen.id3 import USLT
-import yt_dlp
-from mutagen.mp3 import MP3
-from mutagen.id3 import ID3, TIT2, TPE1, TALB, TDRC, TRCK, TXXX, USLT, APIC
+import time
 import requests
 import logging
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-import api_key
-import re 
-import time
+import re
+
+import yt_dlp
 from ytmusicapi import YTMusic
+from spotipy.oauth2 import SpotifyClientCredentials
+import spotipy
+
+import api_key
+
 import lyrics_utils
+import tag_utils
 
 
 EXT = ".mp3"
@@ -59,7 +60,7 @@ class Musiclib():
     def init_library(self):
 
         # Ensure the path ends with a slash (optional)
-        library_path = os.path.join(library_path, '')
+        library_path = os.path.join(self.library_path, '')
 
         # Create the directory
         try:
@@ -116,62 +117,6 @@ class Musiclib():
         
         return tracks_metadata
     
-    def add_tag_mp3(self, audio_path, track_info):
-        """
-        Adds or updates ID3 tags for an MP3 file.
-
-        This function writes metadata such as track name, artists, album details, 
-        release date, lyrics, and album artwork to the specified MP3 file.
-
-        Args:
-            audio_path (str): Path to the MP3 file to be updated.
-            track_info (dict): Dictionary containing track information with the following keys:
-                - `track_name` (str): Name of the track.
-                - `track_artists` (list[str]): List of artists who performed the track.
-                - `release_date` (str): Release date of the track.
-                - `album_name` (str, optional): Name of the album containing the track.
-                - `album_artists` (list[str], optional): List of artists credited for the album.
-                - `track_number` (int): Track's position in the album.
-                - `total_tracks` (int): Total number of tracks in the album.
-                - `lyrics` (str): Lyrics of the track.
-                - `thumbnail_url` (str, optional): URL of the album's thumbnail image.
-        """
-        # Load the MP3 file
-        audio = MP3(audio_path, ID3=ID3)
-
-        # Clear all existing tags
-        audio.delete()
-
-        # Add or update tags
-        audio['TIT2'] = TIT2(encoding=3, text=track_info['track_name'])  # Track Name
-        audio['TPE1'] = TPE1(encoding=3, text="/".join(track_info['track_artists']))  # Track Artists
-        audio['TDRC'] = TDRC(encoding=3, text=track_info['release_date'])  # Release Date
-
-
-        if track_info['total_tracks'] > 1:
-            audio['TALB'] = TALB(encoding=3, text=track_info['album_name'])  # Album Name
-            audio['TXXX:Album Artist'] = TXXX(encoding=3, desc='Album Artist', text="/".join(track_info['album_artists']))  # Album Artists
-            audio['TRCK'] = TRCK(encoding=3, text=f'{track_info['track_number']}/{track_info['total_tracks']}')  # Track Number / Total Tracks
-        
-        audio['USLT'] = USLT(encoding=3, lang='eng', desc='', text=track_info['lyrics'])  # Lyrics
-
-        if track_info['thumbnail_url']:
-            response = make_request(track_info['thumbnail_url'])
-            if not response:
-                logging.warning(f"Failed to download image. Status code: {response.status_code}")
-
-            audio.tags.add(
-                APIC(
-                    encoding=3,  # UTF-8 encoding
-                    mime='image/jpeg',  # MIME type
-                    type=3,  # Cover (front)
-                    desc='Thumbnail',
-                    data=response.content,  # Image data
-                )
-            )
-            
-        # Save changes
-        audio.save()
     
     def download_artist_disocgrapy(self, artist_name, library_path, prefer_spotify_metadata=True):
         track_metadata = self.get_discography_by_artist_youtube(artist_name)
@@ -193,7 +138,7 @@ class Musiclib():
                 release_year = track_info['release_date'].split("-")[0]
                 new_path = os.path.join(library_path, track_info['track_artists'][0], f"[{release_year}] {track_info['album_name']}", new_filename)
 
-            self.add_tag_mp3(file_path,track_info)
+            tag_utils.add_tag_mp3(file_path,track_info)
 
             os.makedirs(os.path.dirname(new_path), exist_ok=True)
             os.rename(file_path, new_path)
