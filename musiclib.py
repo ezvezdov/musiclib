@@ -222,41 +222,6 @@ def get_track_info_spotify(track_name, artist_name):
     
     return track_info
 
-def get_track_info_genius(track_name, artists_names):
-    search_term = f"{artists_names} - {track_name}"
-    genius_search_url = f"http://api.genius.com/search?q={search_term}&access_token={api_key.genius_client_access_token}"
-
-    response = make_request(genius_search_url)
-    if not response: return {}
-        
-    json_data = response.json()
-
-    track = json_data['response']['hits'][0]['result']
-
-    track_info = dict()
-
-    track_info['track_name'] = trackname_remove_unnecessary(track.get('title', ''))
-    track_info['track_artists'] = [track['primary_artist']['name']]
-    track_info['album_name'] = ""
-    track_info['release_date'] = f"{track['release_date_components']['year']} - {track['release_date_components']['month']} - {track['release_date_components']['day']}"
-
-    track_info['track_number'] = track.get('track_number', -1)
-    track_info['total_tracks'] = -1
-    track_info['album_artists'] = track_info['track_artists']
-    track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
-
-    track_info['thumbnail_url'] = track['header_image_url']
-
-    return track_info
-
-
-
-
-
-
-
-
-
 
 if __name__ == "__main__":
     library_path = input("Please enter the path for music library: ").strip()
