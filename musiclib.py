@@ -411,18 +411,53 @@ def get_discography_by_artist_deezer(artist_name):
             title = trackname_remove_unnecessary(track["title"])
             titles.append(title)
     
-    for title in titles:
-        download_by_title_youtube(title, artist_name)
-        
-
-
-    print(len(titles))
-
+def get_discography_by_artist_youtube(artist_name):
+    ytmusic = YTMusic()
+    search_results = ytmusic.search(artist_name, filter="artists")
+    if not search_results:
+        return {}
     
-def download_by_title_youtube(title, artist_name):
-    query = f"ytsearch:{artist_name} {title}"
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([query])
+    artist_browse_id = search_results[0]['browseId']
+    artist_details = ytmusic.get_artist(artist_browse_id)
+
+    tracks_metadata = {}
+
+    if "albums" in artist_details:
+        for album in artist_details['albums']['results']:
+            album_details = ytmusic.get_album(album['browseId'])
+            for track in album_details['tracks']:        
+                track_info = {}
+                track_info['track_name'] = trackname_remove_unnecessary(track['title'])
+                track_info['track_artists'] = [artist['name'] for artist in track['artists']]
+                track_info['album_name'] = album_details['title']
+                track_info['release_date'] = album_details['year']
+                track_info['track_number'] = track['trackNumber']
+                track_info['total_tracks'] = album_details['trackCount']
+                track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]
+                track_info['lyrics'] = get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+                track_info['thumbnail_url'] = album_details['thumbnails'][-1]['url']
+
+                tracks_metadata[track['videoId']] = track_info
+    if "singles" in artist_details:
+        for track in artist_details['singles']['results']:
+
+            album_details = ytmusic.get_album(track['browseId'])
+            import json
+            with open("data.json", "w") as json_file:
+                json.dump(album_details, json_file, indent=4)  # Use indent=4 for pretty-printing
+
+            track_info = {}
+            track_info['track_name'] = trackname_remove_unnecessary(track['title'])
+            track_info['track_artists'] = [artist['name'] for artist in album_details['artists']]
+            track_info['release_date'] = track['year']
+            track_info['total_tracks'] = -1
+            track_info['album_artists'] = []
+            track_info['lyrics'] = get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+            track_info['thumbnail_url'] = track['thumbnails'][-1]['url']
+
+            tracks_metadata[album_details['tracks'][0]['videoId']] = track_info
+    
+    return tracks_metadata
 
 
 
