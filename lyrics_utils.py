@@ -32,10 +32,10 @@ def get_lyrics(track_name, artists_names):
 
     # There is no lyrics for this track
     if lrc is None:
-        musiclib.logging.degub(f"Lyrics: there is no lyrics for {artists_names} - {track_name}")
+        musiclib.logging.debug(f"Lyrics: there is no lyrics for {artists_names} - {track_name}")
         return None
     
-    musiclib.debug(f"Lyrics: {lyrics_type} lyrics saved for {artists_names} - {track_name}")
+    musiclib.logging.debug(f"Lyrics: {lyrics_type} lyrics saved for {artists_names} - {track_name}")
     return lrc.rstrip()
 
 def add_lyrics(audio_path):
