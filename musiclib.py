@@ -38,6 +38,7 @@ class Musiclib():
                 '-b:a', '192k'  # Set audio bitrate to 192 kbps
             ],
             'quiet': True,  # Show progress and details
+            'cookiefile': "assets/cookies.json",
         }
 
         self.library_path = library_path
