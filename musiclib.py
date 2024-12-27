@@ -45,6 +45,7 @@ class Musiclib():
         self.init_library()
 
         self.ytmusic = YTMusic()
+        self.ydl = yt_dlp.YoutubeDL(self.ydl_opts)
 
         
     
@@ -140,8 +141,7 @@ class Musiclib():
         track_url = f"https://music.youtube.com/watch?v={track_id}"
 
         # Download using yt-dlp
-        with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
-            ydl.download([track_url])
+        self.ydl.download([track_url])
 
 
 class MusiclibS(Musiclib):
