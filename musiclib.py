@@ -38,7 +38,7 @@ class Musiclib():
                 '-b:a', '192k'  # Set audio bitrate to 192 kbps
             ],
             'quiet': True,  # Show progress and details
-            'cookiefile': "assets/cookies.json",
+            'cookiefile': "assets/cookies.txt",
         }
 
         self.library_path = library_path
@@ -63,6 +63,7 @@ class Musiclib():
 
         self.ydl_opts['outtmpl'] = os.path.join(self.library_path, self.ydl_opts['outtmpl'])
         if "download_archive" in self.ydl_opts:
+            os.makedirs(os.path.join(self.library_path, ".info"), exist_ok=True)
             self.ydl_opts['download_archive'] = os.path.join(self.library_path, ".info", self.ydl_opts['download_archive'])
 
     def get_discography_by_artist_youtube(self,artist_name):
