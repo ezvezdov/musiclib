@@ -1,2 +1,2 @@
-spotify_client_id = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-spotify_client_secret = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+spotify_client_id = "8f87158556d54b72a375ee9b81e7eacc"
+spotify_client_secret = "6aaae375be474ff4951a5f2d31dccf57"
