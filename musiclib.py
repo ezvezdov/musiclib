@@ -20,6 +20,8 @@ def trackname_remove_unnecessary(track_name):
     name = re.sub(r'\(feat.*?\)|\(ft.*?\)|feat.*|ft.*|\(Feat.*?\)|\(Ft.*?\)|\(prod.*?\)|\[prod.*?\]|\(Prod.*?\)', '', track_name)
     return name.rstrip()
 
+def replace_slash(str):
+    return str.replace("/","⁄")
 
 class Musiclib():
     def __init__(self, library_path):
@@ -132,13 +134,13 @@ class Musiclib():
                 track_info = track_info_another
             
             file_path = os.path.join(library_path, f"{id}{EXT}")
-            new_filename = ", ".join(track_info['track_artists']) + " - " + track_info['track_name'] + EXT
+            new_filename = replace_slash(", ".join(track_info['track_artists'])) + " - " + replace_slash(track_info['track_name']) + EXT
 
             new_path = os.path.join(library_path, track_info['track_artists'][0], new_filename)
             if track_info['total_tracks'] > 1:
                 new_filename = f"{track_info['track_number']}. {new_filename}"
                 release_year = track_info['release_date'].split("-")[0]
-                new_path = os.path.join(library_path, track_info['track_artists'][0], f"[{release_year}] {track_info['album_name']}", new_filename)
+                new_path = os.path.join(library_path, replace_slash(track_info['track_artists'][0]), f"[{release_year}] {replace_slash(track_info['album_name'])}", new_filename)
 
             tag_utils.add_tag_mp3(file_path,track_info)
 
