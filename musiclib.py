@@ -1,5 +1,6 @@
 import os
 import re
+import json
 
 import yt_dlp
 from ytmusicapi import YTMusic
@@ -26,7 +27,6 @@ class Musiclib():
         self.ydl_opts = {
             'format': 'bestaudio/best',  # Select the best audio format available
             'outtmpl': '%(id)s.%(ext)s',  # Custom output template
-            # 'download_archive': 'ydl.txt',
             'retries': 5,  # Retry 5 times for errors
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
@@ -42,7 +42,11 @@ class Musiclib():
         }
 
         self.library_path = library_path
+        self.db_path = "db.json"
         self.init_library()
+
+        self.db = {}
+        self.load_db()
 
         self.ytmusic = YTMusic()
         self.ydl = yt_dlp.YoutubeDL(self.ydl_opts)
@@ -62,9 +66,11 @@ class Musiclib():
             logging_utils.logging.error(f"Error creating folders: {e}")
 
         self.ydl_opts['outtmpl'] = os.path.join(self.library_path, self.ydl_opts['outtmpl'])
-        if "download_archive" in self.ydl_opts:
-            os.makedirs(os.path.join(self.library_path, ".info"), exist_ok=True)
-            self.ydl_opts['download_archive'] = os.path.join(self.library_path, ".info", self.ydl_opts['download_archive'])
+
+        # Database path
+        os.makedirs(os.path.join(self.library_path, ".info"), exist_ok=True)
+        self.db_path = os.path.join(self.library_path, ".info", "db.json")
+
 
     def get_discography_by_artist_youtube(self,artist_name):
         search_results = self.ytmusic.search(artist_name, filter="artists")
@@ -117,6 +123,8 @@ class Musiclib():
         track_metadata = self.get_discography_by_artist_youtube(artist_name)
 
         for id, track_info in track_metadata.items():
+            if id in self.db: continue
+
             self.download_track_youtube(id)
 
             track_info_another = self.get_another_metadata(track_info['track_name'], ", ".join(track_info['track_artists']))
@@ -137,12 +145,30 @@ class Musiclib():
             os.makedirs(os.path.dirname(new_path), exist_ok=True)
             os.rename(file_path, new_path)
 
+            # Save database
+            self.db[id] = new_filename
+            self.write_db()
+
     def download_track_youtube(self,track_id):
         # Construct the URL for YouTube Music
         track_url = f"https://music.youtube.com/watch?v={track_id}"
 
         # Download using yt-dlp
         self.ydl.download([track_url])
+    
+    def write_db(self):
+        # write database to the db.json file
+        with open(self.db_path, "w") as file:
+            json.dump(self.db, file, indent=4)
+
+    def load_db(self):
+        # fetch database from db.json file
+        if not os.path.exists(self.db_path) or not os.path.isfile(self.db_path):
+            self.write_db()
+
+        with open(self.db_path, "r") as file:
+            self.db = json.load(file)
+
 
 
 class MusiclibS(Musiclib):
