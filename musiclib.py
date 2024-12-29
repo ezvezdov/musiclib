@@ -136,7 +136,7 @@ class Musiclib():
         if track_info_another:
             track_info = track_info_another
         
-        file_path = os.path.join(library_path, f"{id}{EXT}")
+        file_path = os.path.join(self.library_path, f"{id}{EXT}")
 
         # Add tag to the track
         tag_utils.add_tag_mp3(file_path,track_info)
@@ -152,11 +152,11 @@ class Musiclib():
         file_path = os.path.join(self.library_path, f"{id}{EXT}")
         new_filename = replace_slash(", ".join(track_info['track_artists'])) + " - " + replace_slash(track_info['track_name']) + EXT
 
-        new_path = os.path.join(library_path, track_info['track_artists'][0], new_filename)
+        new_path = os.path.join(self.library_path, track_info['track_artists'][0], new_filename)
         if track_info['total_tracks'] > 1:
             new_filename = f"{track_info['track_number']}. {new_filename}"
             release_year = track_info['release_date'].split("-")[0]
-            new_path = os.path.join(library_path, replace_slash(track_info['track_artists'][0]), f"[{release_year}] {replace_slash(track_info['album_name'])}", new_filename)
+            new_path = os.path.join(self.library_path, replace_slash(track_info['track_artists'][0]), f"[{release_year}] {replace_slash(track_info['album_name'])}", new_filename)
 
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
         os.rename(file_path, new_path)
