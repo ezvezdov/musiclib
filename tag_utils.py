@@ -4,6 +4,8 @@ from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, TIT2, TPE1, TALB, TDRC, TRCK, TXXX, USLT, APIC
 import logging_utils
 
+ARTIST_SEPARATOR = "|"
+
 def make_request(url, retries=3, delay=2):
     for attempt in range(retries):
         response = requests.get(url, timeout=10)
@@ -41,13 +43,13 @@ def add_tag_mp3(audio_path, track_info):
 
     # Add or update tags
     audio['TIT2'] = TIT2(encoding=3, text=track_info['track_name'])  # Track Name
-    audio['TPE1'] = TPE1(encoding=3, text="/".join(track_info['track_artists']))  # Track Artists
+    audio['TPE1'] = TPE1(encoding=3, text=ARTIST_SEPARATOR.join(track_info['track_artists']))  # Track Artists
     audio['TDRC'] = TDRC(encoding=3, text=track_info['release_date'])  # Release Date
 
 
     if track_info['total_tracks'] > 1:
         audio['TALB'] = TALB(encoding=3, text=track_info['album_name'])  # Album Name
-        audio['TXXX:Album Artist'] = TXXX(encoding=3, desc='Album Artist', text="/".join(track_info['album_artists']))  # Album Artists
+        audio['TXXX:Album Artist'] = TXXX(encoding=3, desc='Album Artist', text=ARTIST_SEPARATOR.join(track_info['album_artists']))  # Album Artists
         audio['TRCK'] = TRCK(encoding=3, text=f'{track_info['track_number']}/{track_info['total_tracks']}')  # Track Number / Total Tracks
     
     audio['USLT'] = USLT(encoding=3, lang='eng', desc='', text=track_info['lyrics'])  # Lyrics
