@@ -17,7 +17,7 @@ import logging_utils
 EXT = ".mp3"
 
 def trackname_remove_unnecessary(track_name):
-    name = re.sub(r'\(prod.*?\)|\[prod.*?\]|\(Prod.*?\)', '', track_name)
+    name = re.sub(r'\(feat.*?\)|\(ft.*?\)|feat.*|ft.*|\(Feat.*?\)|\(Ft.*?\)|\(prod.*?\)|\[prod.*?\]|\(Prod.*?\)', '', track_name)
     return name.rstrip()
 
 def replace_slash(str):
