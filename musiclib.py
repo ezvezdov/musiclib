@@ -20,6 +20,22 @@ def trackname_remove_unnecessary(track_name):
     name = re.sub(r'\(feat.*?\)|\(ft.*?\)|feat.*|ft.*|\(Feat.*?\)|\(Ft.*?\)|\(prod.*?\)|\[prod.*?\]|\(Prod.*?\)', '', track_name)
     return name.rstrip()
 
+
+def get_feat_artists(track_name):
+    match = re.search(r'\((?:feat|ft)\.*.*?\)|(?:feat|ft)\.*.*', track_name, re.IGNORECASE)
+
+    if match:
+        result = re.sub(r'.*?(feat|ft)\.*', '', match.group(0), flags=re.IGNORECASE).strip("() ")
+
+        artists = re.split(r',|\s&\s', result)
+
+        # Clean up whitespace
+        artists = [artist.strip() for artist in artists]
+
+        return artists
+
+    return []
+
 def replace_slash(str):
     return str.replace("/","⁄")
 
@@ -107,7 +123,7 @@ class Musiclib():
 
                 track_info = {}
                 track_info['track_name'] = trackname_remove_unnecessary(track['title'])
-                track_info['track_artists'] = [artist['name'] for artist in album_details['artists']]
+                track_info['track_artists'] = [artist['name'] for artist in album_details['artists']] + get_feat_artists(track['title'])
                 track_info['release_date'] = track['year']
                 track_info['total_tracks'] = -1
                 track_info['album_artists'] = []
@@ -136,7 +152,7 @@ class Musiclib():
             track_info = {}
             track_info['ytm_id'] = track['videoId']
             track_info['track_name'] = trackname_remove_unnecessary(track['title'])
-            track_info['track_artists'] = [artist['name'] for artist in track['artists']]
+            track_info['track_artists'] = [artist['name'] for artist in track['artists']] + get_feat_artists(track['title'])
 
 
             if not download_top_result:
