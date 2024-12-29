@@ -125,31 +125,42 @@ class Musiclib():
         track_metadata = self.get_discography_by_artist_youtube(artist_name)
 
         for id, track_info in track_metadata.items():
-            if id in self.db: continue
+            self.__download_by_id(id, track_info)
+    
+    def __download_by_id(self, id, track_info):
+        if id in self.db: return
 
-            self.__download_track_youtube(id)
+        self.__download_track_youtube(id)
 
-            track_info_another = self.get_another_metadata(track_info['track_name'], ", ".join(track_info['track_artists']))
-            if track_info_another:
-                track_info = track_info_another
-            
-            file_path = os.path.join(library_path, f"{id}{EXT}")
-            new_filename = replace_slash(", ".join(track_info['track_artists'])) + " - " + replace_slash(track_info['track_name']) + EXT
+        track_info_another = self.get_another_metadata(track_info['track_name'], ", ".join(track_info['track_artists']))
+        if track_info_another:
+            track_info = track_info_another
+        
+        file_path = os.path.join(library_path, f"{id}{EXT}")
 
-            new_path = os.path.join(library_path, track_info['track_artists'][0], new_filename)
-            if track_info['total_tracks'] > 1:
-                new_filename = f"{track_info['track_number']}. {new_filename}"
-                release_year = track_info['release_date'].split("-")[0]
-                new_path = os.path.join(library_path, replace_slash(track_info['track_artists'][0]), f"[{release_year}] {replace_slash(track_info['album_name'])}", new_filename)
+        # Add tag to the track
+        tag_utils.add_tag_mp3(file_path,track_info)
 
-            tag_utils.add_tag_mp3(file_path,track_info)
+        # Rename and move track
+        self.__move_downloaded_track(id, track_info)
+        
+        # Save database
+        self.db[id] = ", ".join(track_info['track_artists']) + " - " + track_info['track_name']
+        self.__write_db()
 
-            os.makedirs(os.path.dirname(new_path), exist_ok=True)
-            os.rename(file_path, new_path)
+    def __move_downloaded_track(self, id, track_info):
+        file_path = os.path.join(self.library_path, f"{id}{EXT}")
+        new_filename = replace_slash(", ".join(track_info['track_artists'])) + " - " + replace_slash(track_info['track_name']) + EXT
 
-            # Save database
-            self.db[id] = new_filename
-            self.__write_db()
+        new_path = os.path.join(library_path, track_info['track_artists'][0], new_filename)
+        if track_info['total_tracks'] > 1:
+            new_filename = f"{track_info['track_number']}. {new_filename}"
+            release_year = track_info['release_date'].split("-")[0]
+            new_path = os.path.join(library_path, replace_slash(track_info['track_artists'][0]), f"[{release_year}] {replace_slash(track_info['album_name'])}", new_filename)
+
+        os.makedirs(os.path.dirname(new_path), exist_ok=True)
+        os.rename(file_path, new_path)
+
 
     def __download_track_youtube(self,track_id):
         # Construct the URL for YouTube Music
@@ -160,15 +171,15 @@ class Musiclib():
     
     def __write_db(self):
         # write database to the db.json file
-        with open(self.db_path, "w") as file:
-            json.dump(self.db, file, indent=4)
+        with open(self.db_path, "w", encoding="utf-8") as file:
+            json.dump(self.db, file, indent=4, ensure_ascii=False)
 
     def __load_db(self):
         # fetch database from db.json file
         if not os.path.exists(self.db_path) or not os.path.isfile(self.db_path):
             self.__write_db()
 
-        with open(self.db_path, "r") as file:
+        with open(self.db_path, "r", encoding="utf-8") as file:
             self.db = json.load(file)
 
 
