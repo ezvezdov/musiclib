@@ -121,7 +121,7 @@ class Musiclib():
     def get_another_metadata(self, track_name, artist_name):
         return {}
     
-    def download_artist_disocgrapy(self, artist_name, library_path, prefer_spotify_metadata=True):
+    def download_artist_disocgrapy(self, artist_name):
         track_metadata = self.get_discography_by_artist_youtube(artist_name)
 
         for id, track_info in track_metadata.items():
