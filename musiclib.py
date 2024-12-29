@@ -127,6 +127,48 @@ class Musiclib():
         for id, track_info in track_metadata.items():
             self.__download_by_id(id, track_info)
     
+    def download_by_name(self, search_term, download_top_result=False):
+        tracks = self.ytmusic.search(search_term, filter="songs")
+        
+        for track in tracks:
+            album_details = self.ytmusic.get_album(track['album']['id'])
+
+            track_info = {}
+            track_info['ytm_id'] = track['videoId']
+            track_info['track_name'] = trackname_remove_unnecessary(track['title'])
+            track_info['track_artists'] = [artist['name'] for artist in track['artists']]
+
+
+            if not download_top_result:
+                track_full_name = ", ".join(track_info['track_artists']) + " - " + track_info['track_name']
+                answer = input(f"Did you search track {track_full_name}? [y/n]: ")
+
+                # Skip current track
+                if answer.lower()[0] != 'y': continue
+
+            track_info['release_date'] = album_details['year']
+
+            if album_details['trackCount'] > 1:
+                track_info['total_tracks'] = album_details['trackCount']
+                track_info['album_name'] = album_details['title']
+                track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]
+
+                for t in album_details['tracks']:
+                    if t['videoId'] == track_info['ytm_id']:
+                        track_info['track_number'] = t['trackNumber']
+            else:
+                track_info['track_number'] = -1
+                track_info['total_tracks'] = -1
+                track_info['album_name'] = ""
+                track_info['album_artists'] = []
+
+            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+            track_info['thumbnail_url'] = album_details['thumbnails'][-1]['url']
+
+            
+            self.__download_by_id(track_info['ytm_id'],track_info)
+            return
+
     def __download_by_id(self, id, track_info):
         if id in self.db: return
 
