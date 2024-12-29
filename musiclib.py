@@ -16,12 +16,12 @@ import logging_utils
 
 EXT = ".mp3"
 
-def __trackname_remove_unnecessary(track_name):
+def _trackname_remove_unnecessary(track_name):
     name = re.sub(r'\(feat.*?\)|\(ft.*?\)|feat.*|ft.*|\(Feat.*?\)|\(Ft.*?\)|\(prod.*?\)|\[prod.*?\]|\(Prod.*?\)', '', track_name)
     return name.rstrip()
 
 
-def __get_feat_artists(track_name):
+def _get_feat_artists(track_name):
     match = re.search(r'\((?:feat|ft)\.*.*?\)|(?:feat|ft)\.*.*', track_name, re.IGNORECASE)
 
     if match:
@@ -36,7 +36,7 @@ def __get_feat_artists(track_name):
 
     return []
 
-def __replace_slash(str):
+def _replace_slash(str):
     return str.replace("/","⁄")
 
 class Musiclib():
@@ -105,7 +105,7 @@ class Musiclib():
                 album_details = self.ytmusic.get_album(album['browseId'])
                 for track in album_details['tracks']:        
                     track_info = {}
-                    track_info['track_name'] = __trackname_remove_unnecessary(track['title'])
+                    track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
                     track_info['track_artists'] = [artist['name'] for artist in track['artists']]
                     track_info['album_name'] = album_details['title']
                     track_info['release_date'] = album_details['year']
@@ -122,8 +122,8 @@ class Musiclib():
                 album_details = self.ytmusic.get_album(track['browseId'])
 
                 track_info = {}
-                track_info['track_name'] = __trackname_remove_unnecessary(track['title'])
-                track_info['track_artists'] = [artist['name'] for artist in album_details['artists']] + __get_feat_artists(track['title'])
+                track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
+                track_info['track_artists'] = [artist['name'] for artist in album_details['artists']] + _get_feat_artists(track['title'])
                 track_info['release_date'] = track['year']
                 track_info['total_tracks'] = -1
                 track_info['album_artists'] = []
@@ -151,8 +151,8 @@ class Musiclib():
 
             track_info = {}
             track_info['ytm_id'] = track['videoId']
-            track_info['track_name'] = __trackname_remove_unnecessary(track['title'])
-            track_info['track_artists'] = [artist['name'] for artist in track['artists']] + __get_feat_artists(track['title'])
+            track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
+            track_info['track_artists'] = [artist['name'] for artist in track['artists']] + _get_feat_artists(track['title'])
 
 
             if not download_top_result:
@@ -208,13 +208,13 @@ class Musiclib():
 
     def __move_downloaded_track(self, id, track_info):
         file_path = os.path.join(self.library_path, f"{id}{EXT}")
-        new_filename = __replace_slash(", ".join(track_info['track_artists'])) + " - " + __replace_slash(track_info['track_name']) + EXT
+        new_filename = _replace_slash(", ".join(track_info['track_artists'])) + " - " + _replace_slash(track_info['track_name']) + EXT
 
         new_path = os.path.join(self.library_path, track_info['track_artists'][0], new_filename)
         if track_info['total_tracks'] > 1:
             new_filename = f"{track_info['track_number']}. {new_filename}"
             release_year = track_info['release_date'].split("-")[0]
-            new_path = os.path.join(self.library_path, __replace_slash(track_info['track_artists'][0]), f"[{release_year}] {__replace_slash(track_info['album_name'])}", new_filename)
+            new_path = os.path.join(self.library_path, _replace_slash(track_info['track_artists'][0]), f"[{release_year}] {_replace_slash(track_info['album_name'])}", new_filename)
 
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
         os.rename(file_path, new_path)
@@ -288,7 +288,7 @@ class MusiclibS(Musiclib):
             track = results['tracks']['items'][0]
             album = track.get('album', {})
 
-            track_info['track_name'] = __trackname_remove_unnecessary(track.get('name', ''))
+            track_info['track_name'] = _trackname_remove_unnecessary(track.get('name', ''))
             track_info['track_artists'] = [artist.get('name', '') for artist in track.get('artists', [])]
             track_info['album_name'] = album.get('name', '')
             track_info['release_date'] = album.get('release_date', '')
