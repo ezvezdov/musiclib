@@ -53,7 +53,8 @@ def add_tag_mp3(audio_path, track_info):
         audio['TPE2'] = TPE2(encoding=3, text=ARTIST_SEPARATOR.join(track_info['album_artists']))  # Album Artists
         audio['TRCK'] = TRCK(encoding=3, text=f'{track_info['track_number']}/{track_info['total_tracks']}')  # Track Number / Total Tracks
     
-    audio['USLT'] = USLT(encoding=3, lang='eng', desc='', text=track_info['lyrics'])  # Lyrics
+    if track_info['lyrics']:
+        audio['USLT'] = USLT(encoding=3, lang='eng', desc='', text=track_info['lyrics'])  # Lyrics
 
     if track_info['thumbnail_url']:
         response = make_request(track_info['thumbnail_url'])
