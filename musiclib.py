@@ -142,7 +142,8 @@ class Musiclib():
                 track_info['track_artists'] = [artist['name'] for artist in album_details['artists']] + _get_feat_artists(track['title'])
                 track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
                 track_info['release_date'] = track['year']
-                track_info['total_tracks'] = -1
+                track_info['track_number'] = ''
+                track_info['total_tracks'] = ''
                 track_info['album_artists'] = []
                 track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
                 track_info['thumbnail'] = _get_image(track['thumbnails'][-1]['url'])
@@ -188,8 +189,8 @@ class Musiclib():
                     if t['videoId'] == track_info['ytm_id']:
                         track_info['track_number'] = t['trackNumber']
             else:
-                track_info['track_number'] = -1
-                track_info['total_tracks'] = -1
+                track_info['track_number'] = ''
+                track_info['total_tracks'] = ''
                 track_info['album_name'] = ""
                 track_info['album_artists'] = []
 
@@ -222,7 +223,7 @@ class Musiclib():
         new_filename = _replace_slash(track_info['track_artists_str']) + " - " + _replace_slash(track_info['track_name']) + EXT
 
         new_path = os.path.join(self.library_path, track_info['track_artists'][0], new_filename)
-        if track_info['total_tracks'] > 1:
+        if track_info['total_tracks']:
             new_filename = f"{track_info['track_number']}. {new_filename}"
             release_year = track_info['release_date'].split("-")[0]
             new_path = os.path.join(self.library_path, _replace_slash(track_info['track_artists'][0]), f"[{release_year}] {_replace_slash(track_info['album_name'])}", new_filename)
@@ -302,8 +303,8 @@ class MusiclibS(Musiclib):
             track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
             track_info['album_name'] = album.get('name', '')
             track_info['release_date'] = album.get('release_date', '')
-            track_info['track_number'] = track.get('track_number', -1)
-            track_info['total_tracks'] = album.get('total_tracks', -1)
+            track_info['track_number'] = track.get('track_number', '')
+            track_info['total_tracks'] = album.get('total_tracks', '')
             track_info['album_artists'] = [artist.get('name', '') for artist in album.get('artists', [])]
             track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
 
