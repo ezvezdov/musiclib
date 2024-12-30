@@ -90,7 +90,7 @@ class Musiclib():
         self.db_path = os.path.join(self.library_path, ".info", "db.json")
 
 
-    def get_discography_by_artist_youtube(self,artist_name):
+    def get_discography_by_artist(self,artist_name):
         search_results = self.ytmusic.search(artist_name, filter="artists")
         if not search_results:
             return {}
@@ -142,7 +142,7 @@ class Musiclib():
         return {}
     
     def download_artist_disocgrapy(self, artist_name):
-        track_metadata = self.get_discography_by_artist_youtube(artist_name)
+        track_metadata = self.get_discography_by_artist(artist_name)
 
         for id, track_info in track_metadata.items():
             self.__download_by_id(id, track_info)
