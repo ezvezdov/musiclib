@@ -57,3 +57,25 @@ def add_tag_mp3(audio_path, track_info):
         
     # Save changes
     audio.save()
+
+
+def get_tag_mp3(audio_path):
+    # Load the MP3 file
+    audio = MP3(audio_path, ID3=ID3)
+
+    track_info = {}
+
+    # Fetch info from tag
+    track_info['ytm_id'] = audio["TXXX:ytm_id"].text[0] if 'TXXX:ytm_id' in audio else '' # YTM id
+    track_info['track_name'] = audio['TIT2'].text[0] if 'TIT2' in audio else '' # Track Name
+    track_info['track_artists'] = audio['TPE1'].text[0].split(ARTIST_SEPARATOR) if 'TPE1' in audio else '' # Track Artists
+    track_info['track_artists_str'] = ", ".join(track_info['track_artists']) # Track Artists str
+    track_info['release_date'] = str(audio['TDRC'].text[0].year) if 'TDRC' in audio else ''  # Release Date
+    track_info['album_name'] = audio['TALB'].text[0]  if 'TALB' in audio else '' # Album Name
+    track_info['album_artists'] = audio['TPE2'].text[0].split(ARTIST_SEPARATOR) if 'TPE2' in audio else '' # Album artist
+    track_info['track_number'] = audio['TRCK'][0].split('/')[0] if 'TRCK' in audio else '' # Track Number
+    track_info['total_tracks'] = audio['TRCK'][0].split('/')[-1] if 'TRCK' in audio else '' # Total Tracks
+    track_info['lyrics'] = audio['USLT::XXX'].text if 'USLT::XXX' in audio else '' # Lyrics
+    track_info['thumbnail'] = base64.b64encode(audio['APIC:Thumbnail'].data).decode('utf-8') if 'APIC:Thumbnail' in audio else ''
+    
+    return track_info
