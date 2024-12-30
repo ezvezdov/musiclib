@@ -108,12 +108,13 @@ class Musiclib():
                     track_info['ytm_id'] = track['videoId']
                     track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
                     track_info['track_artists'] = [artist['name'] for artist in track['artists']]
+                    track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
                     track_info['album_name'] = album_details['title']
                     track_info['release_date'] = album_details['year']
                     track_info['track_number'] = track['trackNumber']
                     track_info['total_tracks'] = album_details['trackCount']
                     track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]                    
-                    track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']),ytmusic=self.ytmusic, id=track_info['ytm_id'])
+                    track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
                     track_info['thumbnail_url'] = album_details['thumbnails'][-1]['url']
 
                     tracks_metadata[track_info['ytm_id']] = track_info
@@ -126,10 +127,11 @@ class Musiclib():
                 track_info['ytm_id'] = album_details['tracks'][0]['videoId']
                 track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
                 track_info['track_artists'] = [artist['name'] for artist in album_details['artists']] + _get_feat_artists(track['title'])
+                track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
                 track_info['release_date'] = track['year']
                 track_info['total_tracks'] = -1
                 track_info['album_artists'] = []
-                track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']),ytmusic=self.ytmusic, id=track_info['ytm_id'])
+                track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
                 track_info['thumbnail_url'] = track['thumbnails'][-1]['url']
 
                 tracks_metadata[track_info['ytm_id']] = track_info
@@ -155,10 +157,11 @@ class Musiclib():
             track_info['ytm_id'] = track['videoId']
             track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
             track_info['track_artists'] = [artist['name'] for artist in track['artists']] + _get_feat_artists(track['title'])
+            track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
 
 
             if not download_top_result:
-                track_full_name = ", ".join(track_info['track_artists']) + " - " + track_info['track_name']
+                track_full_name = track_info['track_artists_str'] + " - " + track_info['track_name']
                 answer = input(f"Did you search track {track_full_name}? [y/n]: ")
 
                 # Skip current track
@@ -180,7 +183,7 @@ class Musiclib():
                 track_info['album_name'] = ""
                 track_info['album_artists'] = []
 
-            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']),ytmusic=self.ytmusic, id=track_info['ytm_id'])
+            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
             track_info['thumbnail_url'] = album_details['thumbnails'][-1]['url']
 
             
@@ -192,7 +195,7 @@ class Musiclib():
 
         self.__download_track_youtube(id)
 
-        track_info_another = self.get_another_metadata(track_info['track_name'], ", ".join(track_info['track_artists']))
+        track_info_another = self.get_another_metadata(track_info['track_name'], track_info['track_artists_str'])
         if track_info_another:
             track_info = track_info_another
             track_info['ytm_id'] = id
@@ -206,12 +209,12 @@ class Musiclib():
         self.__move_downloaded_track(id, track_info)
         
         # Save database
-        self.db[id] = ", ".join(track_info['track_artists']) + " - " + track_info['track_name']
+        self.db[id] = track_info['track_artists_str'] + " - " + track_info['track_name']
         self.__write_db()
 
     def __move_downloaded_track(self, id, track_info):
         file_path = os.path.join(self.library_path, f"{id}{EXT}")
-        new_filename = _replace_slash(", ".join(track_info['track_artists'])) + " - " + _replace_slash(track_info['track_name']) + EXT
+        new_filename = _replace_slash(track_info['track_artists_str']) + " - " + _replace_slash(track_info['track_name']) + EXT
 
         new_path = os.path.join(self.library_path, track_info['track_artists'][0], new_filename)
         if track_info['total_tracks'] > 1:
@@ -294,12 +297,13 @@ class MusiclibS(Musiclib):
 
             track_info['track_name'] = _trackname_remove_unnecessary(track.get('name', ''))
             track_info['track_artists'] = [artist.get('name', '') for artist in track.get('artists', [])]
+            track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
             track_info['album_name'] = album.get('name', '')
             track_info['release_date'] = album.get('release_date', '')
             track_info['track_number'] = track.get('track_number', -1)
             track_info['total_tracks'] = album.get('total_tracks', -1)
             track_info['album_artists'] = [artist.get('name', '') for artist in album.get('artists', [])]
-            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']),ytmusic=self.ytmusic, id=track_info['ytm_id'])
+            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
 
             # Safely get the thumbnail URL
             images = album.get('images', [])
