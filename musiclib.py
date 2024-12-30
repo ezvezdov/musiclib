@@ -4,6 +4,7 @@ import json
 import time
 import base64
 import requests
+from pathlib import Path
 
 import yt_dlp
 from ytmusicapi import YTMusic
@@ -52,6 +53,10 @@ def _get_image(url, retries=3, delay=2):
 
     logging_utils.logging.warning(f"Failed to download image. Status code: {response.status_code}")
     return {}
+
+def _find_mp3_files(directory):
+    return list(Path(directory).rglob("*.mp3"))
+
 class Musiclib():
     def __init__(self, library_path):
 
@@ -74,6 +79,7 @@ class Musiclib():
 
         self.library_path = library_path
         self.db_path = "db.json"
+        self.backup_path = "backup.json"
         self.init_library()
 
         self.db = {}
@@ -100,7 +106,9 @@ class Musiclib():
 
         # Database path
         os.makedirs(os.path.join(self.library_path, ".info"), exist_ok=True)
-        self.db_path = os.path.join(self.library_path, ".info", "db.json")
+        self.db_path = os.path.join(self.library_path, ".info", self.db_path)
+        self.backup_path = os.path.join(self.library_path, ".info", self.backup_path)
+        
 
 
     def get_discography_by_artist(self,artist_name):
@@ -200,6 +208,31 @@ class Musiclib():
             
             self.__download_by_id(track_info['ytm_id'],track_info)
             return
+    
+    def backup_library(self):
+        track_metadata = dict()
+        mp3_files = _find_mp3_files(self.library_path)
+        for mp3_path in mp3_files:
+            track_info = tag_utils.get_tag_mp3(mp3_path)
+            track_metadata[track_info['ytm_id']] = track_info
+        
+        with open(self.backup_path, "w", encoding="utf-8") as file:
+            json.dump(track_metadata, file, indent=4, ensure_ascii=False)
+            
+    def restore_library(self, backup_filepath):
+        if not os.path.exists(backup_filepath):
+            print(f"File {backup_filepath} doesn't exist.")
+            return
+        if not os.path.isfile(backup_filepath):
+            print(f"File {backup_filepath} is directory.")
+            return
+        
+        track_metadata = {}
+        with open(backup_filepath, "r", encoding="utf-8") as file:
+            track_metadata = json.load(file)
+        
+        for id, track_info in track_metadata.items():
+            self.__download_by_id(id, track_info)   
 
     def __download_by_id(self, id, track_info):
         if id in self.db: return
