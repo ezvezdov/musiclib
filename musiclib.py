@@ -105,6 +105,7 @@ class Musiclib():
                 album_details = self.ytmusic.get_album(album['browseId'])
                 for track in album_details['tracks']:        
                     track_info = {}
+                    track_info['ytm_id'] = track['videoId']
                     track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
                     track_info['track_artists'] = [artist['name'] for artist in track['artists']]
                     track_info['album_name'] = album_details['title']
@@ -115,13 +116,14 @@ class Musiclib():
                     track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
                     track_info['thumbnail_url'] = album_details['thumbnails'][-1]['url']
 
-                    tracks_metadata[track['videoId']] = track_info
+                    tracks_metadata[track_info['ytm_id']] = track_info
         if "singles" in artist_details:
             for track in artist_details['singles']['results']:
 
                 album_details = self.ytmusic.get_album(track['browseId'])
 
                 track_info = {}
+                track_info['ytm_id'] = album_details['tracks'][0]['videoId']
                 track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
                 track_info['track_artists'] = [artist['name'] for artist in album_details['artists']] + _get_feat_artists(track['title'])
                 track_info['release_date'] = track['year']
@@ -130,7 +132,7 @@ class Musiclib():
                 track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
                 track_info['thumbnail_url'] = track['thumbnails'][-1]['url']
 
-                tracks_metadata[album_details['tracks'][0]['videoId']] = track_info
+                tracks_metadata[track_info['ytm_id']] = track_info
         
         return tracks_metadata
     
@@ -193,6 +195,7 @@ class Musiclib():
         track_info_another = self.get_another_metadata(track_info['track_name'], ", ".join(track_info['track_artists']))
         if track_info_another:
             track_info = track_info_another
+            track_info['ytm_id'] = id
         
         file_path = os.path.join(self.library_path, f"{id}{EXT}")
 

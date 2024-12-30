@@ -1,7 +1,7 @@
 import requests
 import time
 from mutagen.mp3 import MP3
-from mutagen.id3 import ID3, TIT2, TPE1, TPE2, TALB, TDRC, TRCK, USLT, APIC
+from mutagen.id3 import ID3, TIT2, TPE1, TPE2, TALB, TDRC, TRCK, USLT, APIC, TXXX
 import logging_utils
 
 ARTIST_SEPARATOR = "|"
@@ -42,6 +42,7 @@ def add_tag_mp3(audio_path, track_info):
     audio.delete()
 
     # Add or update tags
+    audio["TXXX:ytm_id"] = TXXX(encoding=3, desc="ytm_id", text=track_info['ytm_id'])
     audio['TIT2'] = TIT2(encoding=3, text=track_info['track_name'])  # Track Name
     audio['TPE1'] = TPE1(encoding=3, text=ARTIST_SEPARATOR.join(track_info['track_artists']))  # Track Artists
     audio['TDRC'] = TDRC(encoding=3, text=track_info['release_date'])  # Release Date
