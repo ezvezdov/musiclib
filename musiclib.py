@@ -138,9 +138,6 @@ class Musiclib():
         
         return tracks_metadata
     
-    def get_another_metadata(self, track_name, artist_name):
-        return {}
-    
     def download_artist_disocgrapy(self, artist_name):
         track_metadata = self.get_discography_by_artist(artist_name)
 
@@ -194,11 +191,6 @@ class Musiclib():
         if id in self.db: return
 
         self.__download_track_youtube(id)
-
-        track_info_another = self.get_another_metadata(track_info['track_name'], track_info['track_artists_str'])
-        if track_info_another:
-            track_info = track_info_another
-            track_info['ytm_id'] = id
         
         file_path = os.path.join(self.library_path, f"{id}{EXT}")
 
@@ -256,9 +248,6 @@ class MusiclibS(Musiclib):
         # Authenticate with Spotify
         self.sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=api_key.spotify_client_id, client_secret=api_key.spotify_client_secret))
 
-    def get_another_metadata(self, track_name, artist_name):
-        return self.get_track_info_spotify(track_name, artist_name)
-
     def get_track_info_spotify(self, track_name, artist_name):
         """
         Retrieves detailed information about a specific track.
@@ -313,6 +302,46 @@ class MusiclibS(Musiclib):
             logging_utils.logging.warning(f"Track {artist_name} - {track_name} was not found.")
         
         return track_info
+
+    def get_discography_by_artist(self,artist_name):
+        results = self.sp.search(q=f"artist:{artist_name}", type="artist", limit=1)
+        if results['artists']['items']:
+            artist = results['artists']['items'][0]
+            artist_id = artist['id']
+        else:
+            return {}
+
+
+        tracks_metadata = []
+
+        for album_type in ['album', 'single', 'compilation']:
+            albums = self.sp.artist_albums(artist_id, album_type=album_type)
+            for album in albums['items']:
+                # Fetch tracks for each album
+                tracks = self.sp.album_tracks(album['id'])
+                for track in tracks['items']:
+                    track_info = {}
+                    track_info['ytm_id'] = ""
+                    track_info['track_name'] = _trackname_remove_unnecessary(track['name'])
+                    track_info['track_artists'] = [artist['name'] for artist in track['artists']]
+                    track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
+                    track_info['album_name'] = album['name']
+                    track_info['release_date'] = album['release_date'].split("-")[0]
+                    track_info['track_number'] = track['track_number']
+                    track_info['total_tracks'] = album['total_tracks']
+                    track_info['album_artists'] = [artist['name'] for artist in album['artists']]
+                    track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
+                    track_info['thumbnail_url'] = album['images'][0]['url']
+
+                    tracks_metadata.append(track_info)
+        return tracks_metadata
+    
+    def download_artist_disocgrapy(self, artist_name):
+        tracks_metadata = self.get_discography_by_artist(artist_name)
+
+        for track_info in tracks_metadata:
+            self.download_by_name(f"{track_info['track_artists_str']} - {track_info['track_name']}",download_top_result=True)
+
 
 
 if __name__ == "__main__":
