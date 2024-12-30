@@ -44,7 +44,7 @@ def add_tag_mp3(audio_path, track_info):
         audio['TRCK'] = TRCK(encoding=3, text=f'{track_info['track_number']}/{track_info['total_tracks']}')  # Track Number / Total Tracks
     
     if track_info['lyrics']:
-        audio['USLT'] = USLT(encoding=3, lang='eng', desc='', text=track_info['lyrics'])  # Lyrics
+        audio['USLT'] = USLT(encoding=3, lang='XXX', desc='', text=track_info['lyrics'])  # Lyrics
 
     if track_info['thumbnail']:
         audio['APIC'] = APIC(
