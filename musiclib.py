@@ -221,6 +221,7 @@ class Musiclib():
 
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
         os.rename(file_path, new_path)
+        print(f"Successfully downloaded {new_path}")
 
 
     def __download_track_youtube(self,track_id):
