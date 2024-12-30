@@ -1,19 +1,9 @@
-import requests
-import time
+import base64
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, TIT2, TPE1, TPE2, TALB, TDRC, TRCK, USLT, APIC, TXXX
-import logging_utils
 
 ARTIST_SEPARATOR = "|"
 
-def make_request(url, retries=3, delay=2):
-    for attempt in range(retries):
-        response = requests.get(url, timeout=10)
-        if response.status_code == 200:
-            return response
-        else:
-            time.sleep(delay)
-    return {}
 
 def add_tag_mp3(audio_path, track_info):
     """
@@ -56,20 +46,14 @@ def add_tag_mp3(audio_path, track_info):
     if track_info['lyrics']:
         audio['USLT'] = USLT(encoding=3, lang='eng', desc='', text=track_info['lyrics'])  # Lyrics
 
-    if track_info['thumbnail_url']:
-        response = make_request(track_info['thumbnail_url'])
-        if not response:
-            logging_utils.logging.warning(f"Failed to download image. Status code: {response.status_code}")
-
-        audio.tags.add(
-            APIC(
+    if track_info['thumbnail']:
+        audio['APIC'] = APIC(
                 encoding=3,  # UTF-8 encoding
                 mime='image/jpeg',  # MIME type
                 type=3,  # Cover (front)
                 desc='Thumbnail',
-                data=response.content,  # Image data
+                data=base64.b64decode(track_info['thumbnail']),  # Image data
             )
-        )
         
     # Save changes
     audio.save()

@@ -1,6 +1,9 @@
 import os
 import re
 import json
+import time
+import base64
+import requests
 
 import yt_dlp
 from ytmusicapi import YTMusic
@@ -39,6 +42,16 @@ def _get_feat_artists(track_name):
 def _replace_slash(str):
     return str.replace("/","⁄")
 
+def _get_image(url, retries=3, delay=2):
+    for attempt in range(retries):
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            return base64.b64encode(response.content).decode('utf-8')
+        else:
+            time.sleep(delay)
+
+    logging_utils.logging.warning(f"Failed to download image. Status code: {response.status_code}")
+    return {}
 class Musiclib():
     def __init__(self, library_path):
 
@@ -115,7 +128,7 @@ class Musiclib():
                     track_info['total_tracks'] = album_details['trackCount']
                     track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]                    
                     track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
-                    track_info['thumbnail_url'] = album_details['thumbnails'][-1]['url']
+                    track_info['thumbnail'] = _get_image(album_details['thumbnails'][-1]['url'])
 
                     tracks_metadata[track_info['ytm_id']] = track_info
         if "singles" in artist_details:
@@ -132,7 +145,7 @@ class Musiclib():
                 track_info['total_tracks'] = -1
                 track_info['album_artists'] = []
                 track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
-                track_info['thumbnail_url'] = track['thumbnails'][-1]['url']
+                track_info['thumbnail'] = _get_image(track['thumbnails'][-1]['url'])
 
                 tracks_metadata[track_info['ytm_id']] = track_info
         
@@ -181,7 +194,7 @@ class Musiclib():
                 track_info['album_artists'] = []
 
             track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
-            track_info['thumbnail_url'] = album_details['thumbnails'][-1]['url']
+            track_info['thumbnail'] = _get_image(album_details['thumbnails'][-1]['url'])
 
             
             self.__download_by_id(track_info['ytm_id'],track_info)
@@ -296,7 +309,7 @@ class MusiclibS(Musiclib):
 
             # Safely get the thumbnail URL
             images = album.get('images', [])
-            track_info['thumbnail_url'] = images[0].get('url', '') if images else ''
+            track_info['thumbnail'] = _get_image(images[0]['url']) 
 
         else:
             logging_utils.logging.warning(f"Track {artist_name} - {track_name} was not found.")
@@ -331,7 +344,7 @@ class MusiclibS(Musiclib):
                     track_info['total_tracks'] = album['total_tracks']
                     track_info['album_artists'] = [artist['name'] for artist in album['artists']]
                     track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
-                    track_info['thumbnail_url'] = album['images'][0]['url']
+                    track_info['thumbnail'] = _get_image(album['images'][0]['url'])
 
                     tracks_metadata.append(track_info)
         return tracks_metadata
