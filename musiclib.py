@@ -112,8 +112,8 @@ class Musiclib():
                     track_info['release_date'] = album_details['year']
                     track_info['track_number'] = track['trackNumber']
                     track_info['total_tracks'] = album_details['trackCount']
-                    track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]
-                    track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+                    track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]                    
+                    track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']),ytmusic=self.ytmusic, id=track_info['ytm_id'])
                     track_info['thumbnail_url'] = album_details['thumbnails'][-1]['url']
 
                     tracks_metadata[track_info['ytm_id']] = track_info
@@ -129,7 +129,7 @@ class Musiclib():
                 track_info['release_date'] = track['year']
                 track_info['total_tracks'] = -1
                 track_info['album_artists'] = []
-                track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+                track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']),ytmusic=self.ytmusic, id=track_info['ytm_id'])
                 track_info['thumbnail_url'] = track['thumbnails'][-1]['url']
 
                 tracks_metadata[track_info['ytm_id']] = track_info
@@ -180,7 +180,7 @@ class Musiclib():
                 track_info['album_name'] = ""
                 track_info['album_artists'] = []
 
-            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']),ytmusic=self.ytmusic, id=track_info['ytm_id'])
             track_info['thumbnail_url'] = album_details['thumbnails'][-1]['url']
 
             
@@ -299,7 +299,7 @@ class MusiclibS(Musiclib):
             track_info['track_number'] = track.get('track_number', -1)
             track_info['total_tracks'] = album.get('total_tracks', -1)
             track_info['album_artists'] = [artist.get('name', '') for artist in album.get('artists', [])]
-            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']))
+            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], ", ".join(track_info['track_artists']),ytmusic=self.ytmusic, id=track_info['ytm_id'])
 
             # Safely get the thumbnail URL
             images = album.get('images', [])

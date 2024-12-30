@@ -4,8 +4,37 @@ import syncedlyrics
 
 import logging_utils
 
+def _convert_to_timestamp(ms):
+    seconds = ms // 1000
+    milliseconds = ms % 1000
+    minutes = seconds // 60
+    seconds = seconds % 60
+    return f"{minutes:02}:{seconds:02}.{milliseconds:03}"
 
-def get_lyrics(track_name, artists_names):
+def get_lyrics_ytm(ytmusic, videoId):
+    lyrics_object = {}
+
+    watch_playlist = ytmusic.get_watch_playlist(videoId)
+
+    lyrics_browseId = watch_playlist.get('lyrics',None)
+    if lyrics_browseId is None: return None
+
+    lyrics = ytmusic.get_lyrics(lyrics_browseId)
+
+
+    if lyrics is None: return None
+
+    if lyrics['hasTimestamps']:
+        lyrics_object['lyrics'] = "\n".join(f"[{_convert_to_timestamp(line.start_time)}]{line.text}" for line in lyrics['lyrics'])
+        lyrics_object['hasTimestamps'] = True
+    else:
+        lyrics_object['lyrics'] = lyrics['lyrics']
+        lyrics_object['hasTimestamps'] = False
+    
+    return lyrics_object
+    
+
+def get_lyrics(track_name, artists_names, ytmusic=None, id=None):
     """
     Fetch the lyrics for a given track and artist(s).
 
@@ -21,23 +50,35 @@ def get_lyrics(track_name, artists_names):
         str: The lyrics for the track, either synchronized or plain. Returns an empty
              string if no lyrics are available.
     """
-    lyrics_type = "synchronized"
+    lyrics_object = {}
 
-    # Search for synced lyrics
-    lrc = syncedlyrics.search(f"{artists_names} {track_name}", providers=[ 'Lrclib', 'NetEase'],enhanced=True)
+    # Search for synced lyrics from YTM
+    if not ytmusic is None and not id is None:
+        lyrics_object = get_lyrics_ytm(ytmusic, id)
+        if lyrics_object and lyrics_object['hasTimestamps']:
+            logging_utils.logging.debug(f"Lyrics: synchronized lyrics saved for {artists_names} - {track_name}. Source: YTM.")
+            return lyrics_object['lyrics'].rstrip()
 
-    # Search for plain lyrics
-    if lrc is None:
-        lyrics_type = "plain"
-        lrc = syncedlyrics.search(f"{artists_names} {track_name}", providers=['Genius', 'Lrclib', 'NetEase'])
+    # Search for synced lyrics from Lrclib, NetEase
+    lrc = syncedlyrics.search(f"{artists_names} {track_name}", providers=['Lrclib', 'NetEase'],enhanced=True)
+    if not lrc is None:
+        logging_utils.logging.debug(f"Lyrics: synchronized lyrics saved for {artists_names} - {track_name}. Source: Musixmatch, Lrclib, NetEase.")
+        return lrc.rstrip()
+
+    # Return plain lyrics from YTM
+    if lyrics_object:
+        logging_utils.logging.debug(f"Lyrics: plain lyrics saved for {artists_names} - {track_name}. Source: YTM.")
+        return lyrics_object['lyrics'].rstrip()
+
+    # Search for plain lyrics from Genius, Lrclib, NetEase
+    lrc = syncedlyrics.search(f"{artists_names} {track_name}", providers=['Genius', 'Lrclib', 'NetEase'])
+    if not lrc is None:
+        logging_utils.logging.debug(f"Lyrics: plain lyrics saved for {artists_names} - {track_name}. Source: Genius, Lrclib, NetEase.")
+        return lrc.rstrip()
 
     # There is no lyrics for this track
-    if lrc is None:
-        logging_utils.logging.debug(f"Lyrics: there is no lyrics for {artists_names} - {track_name}")
-        return None
-    
-    logging_utils.logging.debug(f"Lyrics: {lyrics_type} lyrics saved for {artists_names} - {track_name}")
-    return lrc.rstrip()
+    logging_utils.logging.debug(f"Lyrics: there is no lyrics for {artists_names} - {track_name}")
+    return None
 
 def add_lyrics(audio_path):
     """
