@@ -72,6 +72,7 @@ ml2.restore_library(backup_path)
 After running this code, the `Music` and `Music2` folders will be identical, each containing two tracks by Ludwig Göransson.
 
 
+# Troubleshooting
 
 > [!WARNING]
 > If you encounter issues with the Spotify API, you can provide your API key in the `api_key.py` file.
