@@ -14,7 +14,7 @@ pip install yt_dlp ytmusicapi spotipy mutagen syncedlyrics
 
 # Usage
 
-You can simply download discograpy of artist using only YouTube API.
+You can simply download discography of artist (Spotify API by default).
 ```
 python musiclib.py
 >>> Please enter the path for music library: ...
