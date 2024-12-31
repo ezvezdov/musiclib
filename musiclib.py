@@ -223,6 +223,8 @@ class Musiclib():
 
         with open(backup_path, "w", encoding="utf-8") as file:
             json.dump(track_metadata, file, indent=4, ensure_ascii=False)
+        
+        return backup_path
             
     def restore_library(self, backup_filepath):
         if not os.path.exists(backup_filepath):
