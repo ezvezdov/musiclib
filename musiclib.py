@@ -388,7 +388,7 @@ class MusiclibS(Musiclib):
                     tracks_metadata.append(track_info)
         return tracks_metadata
     
-    def download_artist_disocgrapy(self, artist_name):
+    def download_artist_discography(self, artist_name):
         tracks_metadata = self._get_discography_by_artist(artist_name)
 
         for track_info in tracks_metadata:
