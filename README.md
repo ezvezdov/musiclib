@@ -42,6 +42,13 @@ There are two classes that can be used:
 + `search_term`: The search query as a string. It is recommended to use the format: "artist1, artist2 - track_name".
 + `download_top_result`: If set to True, downloads the first matching result automatically. By default (False), it will prompt you to confirm if the match is correct.
 
+### Backup library
+`Musiclib.backup_library() -> str`
+
+This function creates backup of library (even with user-changed tags).
+Creates file `.info/musiclib_backup_***.json` and returns path to it.
+
+
 
 > [!WARNING]
 > If you encounter issues with the Spotify API, you can provide your API key in the `api_key.py` file.
