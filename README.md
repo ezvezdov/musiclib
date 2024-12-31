@@ -32,6 +32,10 @@ There are two classes that can be used:
 > [!TIP]
 > Use MusiclibS for improved performance
 
+## Available methods
+
+### Downloading artist's discography
+`Musiclib.download_artist_discography(artist_name: str)`
 
 > [!WARNING]
 > If you encounter issues with the Spotify API, you can provide your API key in the `api_key.py` file.
