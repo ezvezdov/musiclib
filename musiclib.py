@@ -166,7 +166,7 @@ class Musiclib():
         for id, track_info in track_metadata.items():
             self.__download_by_id(id, track_info)
     
-    def download_by_name(self, search_term, download_top_result=False):
+    def download_track_by_name(self, search_term, download_top_result=False):
         tracks = self.ytmusic.search(search_term, filter="songs")
         
         for track in tracks:
@@ -387,7 +387,7 @@ class MusiclibS(Musiclib):
         tracks_metadata = self._get_discography_by_artist(artist_name)
 
         for track_info in tracks_metadata:
-            self.download_by_name(f"{track_info['track_artists_str']} - {track_info['track_name']}",download_top_result=True)
+            self.download_track_by_name(f"{track_info['track_artists_str']} - {track_info['track_name']}",download_top_result=True)
 
 
 
