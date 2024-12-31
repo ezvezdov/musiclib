@@ -21,6 +21,8 @@ python musiclib.py
 >>> Please enter artist name: ...
 ```
 
+This script creates a simple database (`.info/db.json`) to track downloaded tracks, allowing you to update an artist's discography without re-downloading existing tracks.
+
 ## Available clases
 
 There are two classes that can be used:
