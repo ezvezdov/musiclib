@@ -80,7 +80,7 @@ class Musiclib():
         self.library_path = library_path
         self.db_path = "db.json"
         self.backup_path = "backup.json"
-        self.init_library()
+        self._init_library()
 
         self.db = {}
         self.__load_db()
@@ -90,7 +90,7 @@ class Musiclib():
 
         
     
-    def init_library(self):
+    def _init_library(self):
 
         # Ensure the path ends with a slash (optional)
         self.library_path = os.path.join(self.library_path, '')
@@ -111,7 +111,7 @@ class Musiclib():
         
 
 
-    def get_discography_by_artist(self,artist_name):
+    def _get_discography_by_artist(self,artist_name):
         search_results = self.ytmusic.search(artist_name, filter="artists")
         if not search_results:
             return {}
@@ -161,7 +161,7 @@ class Musiclib():
         return tracks_metadata
     
     def download_artist_disocgrapy(self, artist_name):
-        track_metadata = self.get_discography_by_artist(artist_name)
+        track_metadata = self._get_discography_by_artist(artist_name)
 
         for id, track_info in track_metadata.items():
             self.__download_by_id(id, track_info)
@@ -295,7 +295,7 @@ class MusiclibS(Musiclib):
         # Authenticate with Spotify
         self.sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=api_key.spotify_client_id, client_secret=api_key.spotify_client_secret))
 
-    def get_track_info_spotify(self, track_name, artist_name):
+    def _get_track_info_spotify(self, track_name, artist_name):
         """
         Retrieves detailed information about a specific track.
 
@@ -350,7 +350,7 @@ class MusiclibS(Musiclib):
         
         return track_info
 
-    def get_discography_by_artist(self,artist_name):
+    def _get_discography_by_artist(self,artist_name):
         results = self.sp.search(q=f"artist:{artist_name}", type="artist", limit=1)
         if results['artists']['items']:
             artist = results['artists']['items'][0]
@@ -384,7 +384,7 @@ class MusiclibS(Musiclib):
         return tracks_metadata
     
     def download_artist_disocgrapy(self, artist_name):
-        tracks_metadata = self.get_discography_by_artist(artist_name)
+        tracks_metadata = self._get_discography_by_artist(artist_name)
 
         for track_info in tracks_metadata:
             self.download_by_name(f"{track_info['track_artists_str']} - {track_info['track_name']}",download_top_result=True)
