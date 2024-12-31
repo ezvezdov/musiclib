@@ -37,6 +37,12 @@ There are two classes that can be used:
 ### Downloading artist's discography
 `Musiclib.download_artist_discography(artist_name: str)`
 
+### Download track
+`Musiclib.download_track_by_name(search_term: str, download_top_result=False)`
++ `search_term`: The search query as a string. It is recommended to use the format: "artist1, artist2 - track_name".
++ `download_top_result`: If set to True, downloads the first matching result automatically. By default (False), it will prompt you to confirm if the match is correct.
+
+
 > [!WARNING]
 > If you encounter issues with the Spotify API, you can provide your API key in the `api_key.py` file.
 > 1. Generate client_id and client_secret at [developer.spotify.com](https://developer.spotify.com/dashboard/create).
