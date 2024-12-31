@@ -21,16 +21,12 @@ python musiclib.py
 >>> Please enter artist name: ...
 ```
 
+## Available clases
 
-You can use Musiclib class in source code this way
-```python
-import musiclib
-muslib = musiclib.Musiclib(library_path)
-muslib.download_artist_disocgrapy("Artist name", library_path)
-```
+There are two classes that can be used:
++ `Musiclib(library_path: str)`: library class that uses YouTube Music metadata.
++ `MusiclibS(library_path: str)`: library class that uses Spotify metadata.
 
-You can use `MusiclibS` instead of `Musiclib`.
-`MusiclibS` retrieves information about tracks from the Spotify.
 > [!TIP]
 > Use MusiclibS for improved performance
 
