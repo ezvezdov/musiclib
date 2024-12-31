@@ -49,6 +49,12 @@ This function creates backup of library (even with user-changed tags).
 Creates file `.info/musiclib_backup_***.json` and returns path to it.
 
 
+### Restore library
+This function downloads track and set metadata from bacup file.
+`Musiclib.backup_library(backup_filepath: str)`
++ `backup_filepath`: path of the file created by `Musiclib.backup_library()`.
+
+
 
 > [!WARNING]
 > If you encounter issues with the Spotify API, you can provide your API key in the `api_key.py` file.
