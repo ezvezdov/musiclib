@@ -161,7 +161,7 @@ class Musiclib():
         
         return tracks_metadata
     
-    def download_artist_disocgrapy(self, artist_name):
+    def download_artist_discography(self, artist_name):
         track_metadata = self._get_discography_by_artist(artist_name)
 
         for id, track_info in track_metadata.items():
@@ -400,8 +400,8 @@ if __name__ == "__main__":
     library_path = input("Please enter the path for music library: ").strip()
     artist_name = input("Please enter artist name: ").strip()
 
-    # muslib = Musiclib(library_path)
-    # muslib.download_artist_disocgrapy(artist_name)
+    # ml = Musiclib(library_path)
+    # ml.download_artist_discography(artist_name)
 
-    muslibS = MusiclibS(library_path)
-    muslibS.download_artist_disocgrapy(artist_name)
+    mls = MusiclibS(library_path)
+    mls.download_artist_discography(artist_name)
