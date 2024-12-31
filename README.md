@@ -55,6 +55,23 @@ This function downloads track and set metadata from bacup file.
 + `backup_filepath`: path of the file created by `Musiclib.backup_library()`.
 
 
+## Example of use
+
+You can use `Musiclib`/`MusiclibS` class in source code this way
+```python
+import musiclib
+ml = musiclib.Musiclib("Music")
+ml.download_track_by_name("Ludwig Göransson - Can You Hear The Music")
+ml.download_track_by_name("Ludwig Göransson - Destroyer Of Worlds", download_top_result=True)
+# ml.download_artist_discography("Ludwig Göransson") 
+backup_path = ml.backup_library()
+
+ml2 = musiclib.MusiclibS("Music2")
+ml2.restore_library(backup_path)
+```
+After running this code, the `Music` and `Music2` folders will be identical, each containing two tracks by Ludwig Göransson.
+
+
 
 > [!WARNING]
 > If you encounter issues with the Spotify API, you can provide your API key in the `api_key.py` file.
