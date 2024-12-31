@@ -77,9 +77,11 @@ class Musiclib():
             'cookiefile': "assets/cookies.txt",
         }
 
+        self.info_path = '.info'
+
         self.library_path = library_path
         self.db_path = "db.json"
-        self.backup_path = "backup.json"
+        self.backup_path_prefix = "musiclib_backup_"
         self._init_library()
 
         self.db = {}
@@ -105,11 +107,10 @@ class Musiclib():
         self.ydl_opts['outtmpl'] = os.path.join(self.library_path, self.ydl_opts['outtmpl'])
 
         # Database path
-        os.makedirs(os.path.join(self.library_path, ".info"), exist_ok=True)
-        self.db_path = os.path.join(self.library_path, ".info", self.db_path)
-        self.backup_path = os.path.join(self.library_path, ".info", self.backup_path)
+        self.info_path = os.path.join(self.library_path, ".info")
+        os.makedirs(self.info_path, exist_ok=True)
+        self.db_path = os.path.join(self.info_path, self.db_path)
         
-
 
     def _get_discography_by_artist(self,artist_name):
         search_results = self.ytmusic.search(artist_name, filter="artists")
@@ -216,7 +217,11 @@ class Musiclib():
             track_info = tag_utils.get_tag_mp3(mp3_path)
             track_metadata[track_info['ytm_id']] = track_info
         
-        with open(self.backup_path, "w", encoding="utf-8") as file:
+
+        formatted_timestamp = time.strftime('%Y%m%d%H%M%S', time.localtime())
+        backup_path = os.path.join(self.info_path, f'{self.backup_path_prefix}{formatted_timestamp}.json')
+
+        with open(backup_path, "w", encoding="utf-8") as file:
             json.dump(track_metadata, file, indent=4, ensure_ascii=False)
             
     def restore_library(self, backup_filepath):
