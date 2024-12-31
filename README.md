@@ -36,4 +36,6 @@ There are two classes that can be used:
 > [!WARNING]
 > If you encounter issues with the Spotify API, you can provide your API key in the `api_key.py` file.
 > 1. Generate client_id and client_secret at [developer.spotify.com](https://developer.spotify.com/dashboard/create).
-> 2. Pass this data to the `api_key.py` file
+> 2. Pass this data to the `api_key.py` file.
+> 
+> Alternatively you can use `Musiclib` instead of `MusiclibS`.
