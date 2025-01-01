@@ -170,7 +170,7 @@ class Musiclib():
                 track_info['release_date'] = track['year']
                 track_info['track_number'] = ''
                 track_info['total_tracks'] = ''
-                track_info['album_artists'] = []
+                track_info['album_artists'] = track_info['track_artists']
                 track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
                 track_info['thumbnail'] = _get_image(track['thumbnails'][-1]['url'])
                 track_info['ytm_title'] = f"{track_info['track_artists_str']} - {track['title']}"
@@ -221,6 +221,8 @@ class Musiclib():
                 for t in album_details['tracks']:
                     if t['title'] == track_info['track_name']:
                         track_info['track_number'] = t['trackNumber']
+            else:
+                track_info['album_artists'] = track_info['track_artists']
 
             track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
             track_info['thumbnail'] = _get_image(album_details['thumbnails'][-1]['url'])
@@ -368,6 +370,8 @@ class MusiclibS(Musiclib):
                 track_info['track_number'] = track.get('track_number', '')
                 track_info['total_tracks'] = album.get('total_tracks', '')
                 track_info['album_artists'] = [artist.get('name', '') for artist in album.get('artists', [])]
+            else:
+                track_info['album_artists'] = track_info['track_artists']
 
             track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
             track_info['thumbnail'] = _get_image(album['images'][0]['url'])
@@ -405,6 +409,8 @@ class MusiclibS(Musiclib):
                         track_info['track_number'] = track['track_number']
                         track_info['total_tracks'] = album['total_tracks']
                         track_info['album_artists'] = [artist['name'] for artist in album['artists']]
+                    else:
+                        track_info['album_artists'] = track_info['track_artists']
 
                     track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
                     track_info['thumbnail'] = _get_image(album['images'][0]['url'])
