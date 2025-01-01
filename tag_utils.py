@@ -33,6 +33,10 @@ def add_tag_mp3(audio_path, track_info):
 
     # Add or update tags
     audio["TXXX:ytm_id"] = TXXX(encoding=3, desc="ytm_id", text=track_info['ytm_id'])
+
+    if track_info['ytm_title']:
+        audio["TXXX:ytm_title"] = TXXX(encoding=3, desc="ytm_id", text=track_info['ytm_title'])
+    
     audio['TIT2'] = TIT2(encoding=3, text=track_info['track_name'])  # Track Name
     audio['TPE1'] = TPE1(encoding=3, text=ARTIST_SEPARATOR.join(track_info['track_artists']))  # Track Artists
     audio['TDRC'] = TDRC(encoding=3, text=track_info['release_date'])  # Release Date
@@ -68,6 +72,7 @@ def get_tag_mp3(audio_path):
 
     # Fetch info from tag
     track_info['ytm_id'] = audio["TXXX:ytm_id"].text[0] if 'TXXX:ytm_id' in audio else '' # YTM id
+    track_info['ytm_title'] = audio['TXXX:ytm_title'].text[0] if 'TXXX:ytm_title' in audio else ''
     track_info['track_name'] = audio['TIT2'].text[0] if 'TIT2' in audio else '' # Track Name
     track_info['track_artists'] = audio['TPE1'].text[0].split(ARTIST_SEPARATOR) if 'TPE1' in audio else '' # Track Artists
     track_info['track_artists_str'] = ", ".join(track_info['track_artists']) # Track Artists str

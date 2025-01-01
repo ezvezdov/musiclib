@@ -420,6 +420,12 @@ class MusiclibS(Musiclib):
         
         if tracks:
             track_info['ytm_id'] = tracks[0]['videoId']
+
+            # Add additional info about title from youtube music
+            artists = [artist['name'] for artist in tracks[0]['artists']]
+            artists_str = ", ".join(artists)
+            track_info['ytm_title'] = f"{artists_str} - {tracks[0]['title']}"
+
             self._download_by_id(track_info['ytm_id'],track_info)
 
 
