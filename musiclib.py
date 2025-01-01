@@ -57,6 +57,21 @@ def _get_image(url, retries=3, delay=2):
 def _find_mp3_files(directory):
     return list(Path(directory).rglob("*.mp3"))
 
+def _init_track_info():
+    track_info = {}
+    track_info['ytm_id'] = ""
+    track_info['track_name'] = ""
+    track_info['track_artists'] = []
+    track_info['track_artists_str'] = ""
+    track_info['release_date'] = ""
+    track_info['album_name'] = ""
+    track_info['album_artists'] = []
+    track_info['track_number'] = ""
+    track_info['total_tracks'] = ""
+    track_info['lyrics'] = ""
+    track_info['thumbnail'] = ""
+    return track_info
+
 class Musiclib():
     def __init__(self, library_path):
 
@@ -126,7 +141,7 @@ class Musiclib():
             for album in artist_details['albums']['results']:
                 album_details = self.ytmusic.get_album(album['browseId'])
                 for track in album_details['tracks']:        
-                    track_info = {}
+                    track_info = _init_track_info()
                     track_info['ytm_id'] = track['videoId']
                     track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
                     track_info['track_artists'] = [artist['name'] for artist in track['artists']]
@@ -145,7 +160,7 @@ class Musiclib():
 
                 album_details = self.ytmusic.get_album(track['browseId'])
 
-                track_info = {}
+                track_info = _init_track_info()
                 track_info['ytm_id'] = album_details['tracks'][0]['videoId']
                 track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
                 track_info['track_artists'] = [artist['name'] for artist in album_details['artists']] + _get_feat_artists(track['title'])
@@ -173,7 +188,8 @@ class Musiclib():
         for track in tracks:
             album_details = self.ytmusic.get_album(track['album']['id'])
 
-            track_info = {}
+            track_info = _init_track_info()
+
             track_info['ytm_id'] = track['videoId']
             track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
             track_info['track_artists'] = [artist['name'] for artist in track['artists']] + _get_feat_artists(track['title'])
@@ -197,11 +213,6 @@ class Musiclib():
                 for t in album_details['tracks']:
                     if t['videoId'] == track_info['ytm_id']:
                         track_info['track_number'] = t['trackNumber']
-            else:
-                track_info['track_number'] = ''
-                track_info['total_tracks'] = ''
-                track_info['album_name'] = ""
-                track_info['album_artists'] = []
 
             track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
             track_info['thumbnail'] = _get_image(album_details['thumbnails'][-1]['url'])
@@ -332,7 +343,7 @@ class MusiclibS(Musiclib):
         query = f"track:{track_name} artist:{artist_name}"
         results = self.sp.search(q=query, type="track", limit=1)
 
-        track_info = dict()
+        track_info = _init_track_info()
 
         if results.get('tracks', {}).get('items', []):
             track = results['tracks']['items'][0]
@@ -374,7 +385,7 @@ class MusiclibS(Musiclib):
                 # Fetch tracks for each album
                 tracks = self.sp.album_tracks(album['id'])
                 for track in tracks['items']:
-                    track_info = {}
+                    track_info = _init_track_info()
                     track_info['ytm_id'] = ""
                     track_info['track_name'] = _trackname_remove_unnecessary(track['name'])
                     track_info['track_artists'] = [artist['name'] for artist in track['artists']]
