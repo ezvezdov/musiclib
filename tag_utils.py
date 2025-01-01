@@ -35,7 +35,7 @@ def add_tag_mp3(audio_path, track_info):
     audio["TXXX:ytm_id"] = TXXX(encoding=3, desc="ytm_id", text=track_info['ytm_id'])
 
     if track_info['ytm_title']:
-        audio["TXXX:ytm_title"] = TXXX(encoding=3, desc="ytm_id", text=track_info['ytm_title'])
+        audio["TXXX:ytm_title"] = TXXX(encoding=3, desc="ytm_title", text=track_info['ytm_title'])
     
     audio['TIT2'] = TIT2(encoding=3, text=track_info['track_name'])  # Track Name
     audio['TPE1'] = TPE1(encoding=3, text=ARTIST_SEPARATOR.join(track_info['track_artists']))  # Track Artists
