@@ -278,7 +278,8 @@ class Musiclib():
 
         new_path = os.path.join(self.library_path, track_info['track_artists'][0], new_filename)
         if track_info['total_tracks']:
-            new_filename = f"{track_info['track_number']}. {new_filename}"
+            if track_info['track_number']:
+                new_filename = f"{track_info['track_number']}. {new_filename}"
             release_year = track_info['release_date'].split("-")[0]
             new_path = os.path.join(self.library_path, _replace_slash(track_info['track_artists'][0]), f"[{release_year}] {_replace_slash(track_info['album_name'])}", new_filename)
 
