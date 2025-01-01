@@ -60,6 +60,7 @@ def _find_mp3_files(directory):
 def _init_track_info():
     track_info = {}
     track_info['ytm_id'] = ""
+    track_info['ytm_title'] = ""
     track_info['track_name'] = ""
     track_info['track_artists'] = []
     track_info['track_artists_str'] = ""
@@ -153,6 +154,7 @@ class Musiclib():
                     track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]                    
                     track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
                     track_info['thumbnail'] = _get_image(album_details['thumbnails'][-1]['url'])
+                    track_info['ytm_title'] = f"{track_info['track_artists_str']} - {track['title']}"
 
                     tracks_metadata[track_info['ytm_id']] = track_info
         if "singles" in artist_details:
@@ -171,6 +173,7 @@ class Musiclib():
                 track_info['album_artists'] = []
                 track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
                 track_info['thumbnail'] = _get_image(track['thumbnails'][-1]['url'])
+                track_info['ytm_title'] = f"{track_info['track_artists_str']} - {track['title']}"
 
                 tracks_metadata[track_info['ytm_id']] = track_info
         
@@ -190,13 +193,15 @@ class Musiclib():
 
             track_info = _init_track_info()
 
-            # Doesn't work normally, because track can have videoId of track and videoId of clip.
-            # There are differet ids in search and album for track.
-            track_info['ytm_id'] = track['videoId']
 
             track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
             track_info['track_artists'] = [artist['name'] for artist in track['artists']] + _get_feat_artists(track['title'])
             track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
+
+            # Doesn't work normally, because track can have videoId of track and videoId of clip.
+            # There are differet ids in search and album for track.
+            track_info['ytm_id'] = track['videoId']
+            track_info['ytm_title'] = f"{track_info['track_artists_str']} - {track['title']}"
 
 
             if not download_top_result:
@@ -390,7 +395,6 @@ class MusiclibS(Musiclib):
                 tracks = self.sp.album_tracks(album['id'])
                 for track in tracks['items']:
                     track_info = _init_track_info()
-                    track_info['ytm_id'] = ""
                     track_info['track_name'] = _trackname_remove_unnecessary(track['name'])
                     track_info['track_artists'] = [artist['name'] for artist in track['artists']]
                     track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
