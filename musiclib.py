@@ -409,7 +409,15 @@ class MusiclibS(Musiclib):
         tracks_metadata = self._get_discography_by_artist(artist_name)
 
         for track_info in tracks_metadata:
-            self.download_track_by_name(f"{track_info['track_artists_str']} - {track_info['track_name']}",download_top_result=True)
+            self._download_track_by_metdata(track_info)
+    
+    def _download_track_by_metdata(self, track_info):
+        search_term = f"{track_info['track_artists_str']} - {track_info['track_name']}"
+        tracks = self.ytmusic.search(search_term, filter="songs")
+        
+        if tracks:
+            track_info['ytm_id'] = tracks[0]['videoId']
+            self._download_by_id(track_info['ytm_id'],track_info)
 
 
 
