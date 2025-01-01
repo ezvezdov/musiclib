@@ -38,7 +38,7 @@ def add_tag_mp3(audio_path, track_info):
     audio['TDRC'] = TDRC(encoding=3, text=track_info['release_date'])  # Release Date
 
 
-    if track_info['total_tracks']:
+    if track_info['album_name']:
         audio['TALB'] = TALB(encoding=3, text=track_info['album_name'])  # Album Name
         audio['TPE2'] = TPE2(encoding=3, text=ARTIST_SEPARATOR.join(track_info['album_artists']))  # Album Artists
         if track_info['track_number']:
