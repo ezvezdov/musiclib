@@ -356,16 +356,16 @@ class MusiclibS(Musiclib):
             track_info['track_name'] = _trackname_remove_unnecessary(track.get('name', ''))
             track_info['track_artists'] = [artist.get('name', '') for artist in track.get('artists', [])]
             track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
-            track_info['album_name'] = album.get('name', '')
             track_info['release_date'] = album.get('release_date', '')
-            track_info['track_number'] = track.get('track_number', '')
-            track_info['total_tracks'] = album.get('total_tracks', '')
-            track_info['album_artists'] = [artist.get('name', '') for artist in album.get('artists', [])]
-            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
 
-            # Safely get the thumbnail URL
-            images = album.get('images', [])
-            track_info['thumbnail'] = _get_image(images[0]['url']) 
+            if int(album['total_tracks']) > 1:
+                track_info['album_name'] = album.get('name', '')
+                track_info['track_number'] = track.get('track_number', '')
+                track_info['total_tracks'] = album.get('total_tracks', '')
+                track_info['album_artists'] = [artist.get('name', '') for artist in album.get('artists', [])]
+
+            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
+            track_info['thumbnail'] = _get_image(album['images'][0]['url'])
 
         else:
             logging_utils.logging.warning(f"Track {artist_name} - {track_name} was not found.")
@@ -394,11 +394,14 @@ class MusiclibS(Musiclib):
                     track_info['track_name'] = _trackname_remove_unnecessary(track['name'])
                     track_info['track_artists'] = [artist['name'] for artist in track['artists']]
                     track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
-                    track_info['album_name'] = album['name']
                     track_info['release_date'] = album['release_date'].split("-")[0]
-                    track_info['track_number'] = track['track_number']
-                    track_info['total_tracks'] = album['total_tracks']
-                    track_info['album_artists'] = [artist['name'] for artist in album['artists']]
+
+                    if int(album['total_tracks']) > 1:
+                        track_info['album_name'] = album['name']
+                        track_info['track_number'] = track['track_number']
+                        track_info['total_tracks'] = album['total_tracks']
+                        track_info['album_artists'] = [artist['name'] for artist in album['artists']]
+
                     track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
                     track_info['thumbnail'] = _get_image(album['images'][0]['url'])
 
