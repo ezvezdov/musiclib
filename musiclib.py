@@ -190,7 +190,10 @@ class Musiclib():
 
             track_info = _init_track_info()
 
+            # Doesn't work normally, because track can have videoId of track and videoId of clip.
+            # There are differet ids in search and album for track.
             track_info['ytm_id'] = track['videoId']
+
             track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
             track_info['track_artists'] = [artist['name'] for artist in track['artists']] + _get_feat_artists(track['title'])
             track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
@@ -211,7 +214,7 @@ class Musiclib():
                 track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]
 
                 for t in album_details['tracks']:
-                    if t['videoId'] == track_info['ytm_id']:
+                    if t['title'] == track_info['track_name']:
                         track_info['track_number'] = t['trackNumber']
 
             track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
