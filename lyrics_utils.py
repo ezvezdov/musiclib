@@ -1,8 +1,8 @@
 import os
-from mutagen.id3 import ID3, USLT
 import syncedlyrics
 
 import logging_utils
+import tag_utils
 
 def _convert_to_timestamp(ms):
     seconds = ms // 1000
@@ -87,30 +87,31 @@ def add_lyrics(audio_path):
     Args:
         audio_path (str): Path to the audio file.
     """
-    # Get ID3 of audio
-    audioID3 = ID3(audio_path)
 
     # Extract track name (title) and artist
-    track_name = audioID3.get("TIT2", None)
-    artists = audioID3.get("TPE1", None)
+    track_info = tag_utils.get_tag_mp3(audio_path)
+    track_name = track_info['track_name']
+    artists_names = track_info['track_artists_str']
     
     # Skip if there is no information about track
-    if track_name is None or artists is None:
+    if not track_name or not artists_names:
         logging_utils.logging.error("ERROR: Unknown title or Artist!")
         return
     
-    track_name = track_name.text[0]
-    artists_names = ", ".join(artists.text)
-    
+    #  Lyrics already exists
+    if 'lyrics' in track_info and track_info['lyrics']: return
+
     # Get lyrics
-    lrc = logging_utils.get_lyrics(track_name, artists_names)
+    lrc = get_lyrics(track_name, artists_names)
     
     # There is no lyrics for this track
     if lrc is None: return
 
-    # Add lyrics to track
-    audioID3.add(USLT(encoding=3, lang='eng', desc='Lyrics', text=lrc))
-    audioID3.save()
+
+    track_info['lyrics'] = lrc
+
+    tag_utils.add_tag_mp3(audio_path,track_info)
+
 
 def add_lyrics_library(library_path):
     """
