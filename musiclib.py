@@ -97,7 +97,7 @@ class Musiclib():
 
         self.library_path = library_path
         self.db_path = "db.json"
-        self.backup_path_prefix = "musiclib_backup_"
+        self._backup_path_prefix = "musiclib_backup_"
         self._init_library()
 
         self.db = {}
@@ -244,7 +244,7 @@ class Musiclib():
         
 
         formatted_timestamp = time.strftime('%Y%m%d%H%M%S', time.localtime())
-        backup_path = os.path.join(self.info_path, f'{self.backup_path_prefix}{formatted_timestamp}.json')
+        backup_path = os.path.join(self.info_path, f'{self._backup_path_prefix}{formatted_timestamp}.json')
 
         with open(backup_path, "w", encoding="utf-8") as file:
             json.dump(track_metadata, file, indent=4, ensure_ascii=False)
