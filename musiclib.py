@@ -290,6 +290,10 @@ class Musiclib():
             release_year = track_info['release_date'].split("-")[0]
             new_path = os.path.join(self.library_path, _replace_slash(track_info['track_artists'][0]), f"[{release_year}] {_replace_slash(track_info['album_name'])}", new_filename)
 
+        if os.path.exists(new_path):
+            rpath = os.path.relpath(new_path, start=self.library_path)
+            new_path = os.path.join(self.library_path, "DUPLICATE", rpath)
+
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
         os.rename(file_path, new_path)
         print(f"Successfully downloaded {new_path}")
