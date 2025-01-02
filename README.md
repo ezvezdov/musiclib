@@ -51,6 +51,7 @@ Creates file `.musiclib/musiclib_backup_***.json` and returns path to it.
 
 ### Restore library
 This function downloads track and set metadata from bacup file.
+
 `Musiclib.backup_library(backup_filepath: str)`
 + `backup_filepath`: path of the file created by `Musiclib.backup_library()`.
 
