@@ -299,7 +299,7 @@ class Musiclib():
             new_path = os.path.join(self.library_path, "DUPLICATE", rpath)
 
         if 'path' in track_info:
-            new_path = os.path.join(self.library_path,track_info['path'])
+            new_path = os.path.join(self.library_path,os.path.normpath(track_info['path']))
 
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
         os.rename(file_path, new_path)
