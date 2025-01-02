@@ -93,7 +93,7 @@ class Musiclib():
             'cookiefile': "assets/cookies.txt",
         }
 
-        self.info_path = '.info'
+        self.info_path = '.musiclib'
 
         self.library_path = library_path
         self.db_path = "db.json"
@@ -123,7 +123,7 @@ class Musiclib():
         self.ydl_opts['outtmpl'] = os.path.join(self.library_path, self.ydl_opts['outtmpl'])
 
         # Database path
-        self.info_path = os.path.join(self.library_path, ".info")
+        self.info_path = os.path.join(self.library_path, self.info_path)
         os.makedirs(self.info_path, exist_ok=True)
         self.db_path = os.path.join(self.info_path, self.db_path)
         

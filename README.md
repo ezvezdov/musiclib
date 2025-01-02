@@ -21,7 +21,7 @@ python musiclib.py
 >>> Please enter artist name: ...
 ```
 
-This script creates a simple database (`.info/db.json`) to track downloaded tracks, allowing you to update an artist's discography without re-downloading existing tracks.
+This script creates a simple database (`.musiclib/db.json`) to track downloaded tracks, allowing you to update an artist's discography without re-downloading existing tracks.
 
 ## Available clases
 
@@ -46,7 +46,7 @@ There are two classes that can be used:
 `Musiclib.backup_library() -> str`
 
 This function creates backup of library (even with user-changed tags).
-Creates file `.info/musiclib_backup_***.json` and returns path to it.
+Creates file `.musiclib/musiclib_backup_***.json` and returns path to it.
 
 
 ### Restore library
