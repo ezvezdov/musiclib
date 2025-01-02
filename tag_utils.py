@@ -74,11 +74,11 @@ def get_tag_mp3(audio_path):
     track_info['ytm_id'] = audio["TXXX:ytm_id"].text[0] if 'TXXX:ytm_id' in audio else '' # YTM id
     track_info['ytm_title'] = audio['TXXX:ytm_title'].text[0] if 'TXXX:ytm_title' in audio else ''
     track_info['track_name'] = audio['TIT2'].text[0] if 'TIT2' in audio else '' # Track Name
-    track_info['track_artists'] = audio['TPE1'].text[0].split(ARTIST_SEPARATOR) if 'TPE1' in audio else '' # Track Artists
+    track_info['track_artists'] = audio['TPE1'].text if 'TPE1' in audio else '' # Track Artists
     track_info['track_artists_str'] = ", ".join(track_info['track_artists']) # Track Artists str
     track_info['release_date'] = str(audio['TDRC'].text[0].year) if 'TDRC' in audio else ''  # Release Date
     track_info['album_name'] = audio['TALB'].text[0]  if 'TALB' in audio else '' # Album Name
-    track_info['album_artists'] = audio['TPE2'].text[0].split(ARTIST_SEPARATOR) if 'TPE2' in audio else '' # Album artist
+    track_info['album_artists'] = audio['TPE2'].text if 'TPE2' in audio else '' # Album artist
     track_info['track_number'] = audio['TRCK'][0].split('/')[0] if 'TRCK' in audio else '' # Track Number
     track_info['total_tracks'] = audio['TRCK'][0].split('/')[-1] if 'TRCK' in audio else '' # Total Tracks
     track_info['lyrics'] = audio['USLT::XXX'].text if 'USLT::XXX' in audio else '' # Lyrics
