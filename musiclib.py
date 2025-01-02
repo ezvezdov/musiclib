@@ -372,7 +372,7 @@ class MusiclibS(Musiclib):
             album = track.get('album', {})
 
             track_info['track_name'] = _trackname_remove_unnecessary(track.get('name', ''))
-            track_info['track_artists'] = [artist.get('name', '') for artist in track.get('artists', [])]
+            track_info['track_artists'] = [artist['name'] for artist in track['artists']]
             track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
             track_info['release_date'] = album.get('release_date', '')
 
@@ -380,7 +380,7 @@ class MusiclibS(Musiclib):
                 track_info['album_name'] = album.get('name', '')
                 track_info['track_number'] = track.get('track_number', '')
                 track_info['total_tracks'] = album.get('total_tracks', '')
-                track_info['album_artists'] = [artist.get('name', '') for artist in album.get('artists', [])]
+                track_info['album_artists'] = [artist['name'] for artist in album['artists']]
             else:
                 track_info['album_artists'] = track_info['track_artists']
 
