@@ -236,6 +236,10 @@ class Musiclib():
         mp3_files = _find_mp3_files(self.library_path)
         for mp3_path in mp3_files:
             track_info = tag_utils.get_tag_mp3(mp3_path)
+
+            mp3_rpath = os.path.relpath(str(mp3_path), start=self.library_path)
+            track_info['path'] = mp3_rpath
+
             track_metadata[track_info['ytm_id']] = track_info
         
 
@@ -293,6 +297,9 @@ class Musiclib():
         if os.path.exists(new_path):
             rpath = os.path.relpath(new_path, start=self.library_path)
             new_path = os.path.join(self.library_path, "DUPLICATE", rpath)
+
+        if 'path' in track_info:
+            new_path = os.path.join(self.library_path,track_info['path'])
 
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
         os.rename(file_path, new_path)
