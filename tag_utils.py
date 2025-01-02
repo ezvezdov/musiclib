@@ -2,7 +2,6 @@ import base64
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, TIT2, TPE1, TPE2, TALB, TDRC, TRCK, USLT, APIC, TXXX
 
-ARTIST_SEPARATOR = "|"
 
 
 def add_tag_mp3(audio_path, track_info):
@@ -38,9 +37,9 @@ def add_tag_mp3(audio_path, track_info):
         audio["TXXX:ytm_title"] = TXXX(encoding=3, desc="ytm_title", text=track_info['ytm_title'])
     
     audio['TIT2'] = TIT2(encoding=3, text=track_info['track_name'])  # Track Name
-    audio['TPE1'] = TPE1(encoding=3, text=ARTIST_SEPARATOR.join(track_info['track_artists']))  # Track Artists
+    audio['TPE1'] = TPE1(encoding=3, text=track_info['track_artists'])  # Track Artists
     audio['TDRC'] = TDRC(encoding=3, text=track_info['release_date'])  # Release Date
-    audio['TPE2'] = TPE2(encoding=3, text=ARTIST_SEPARATOR.join(track_info['album_artists']))  # Album Artists
+    audio['TPE2'] = TPE2(encoding=3, text=track_info['album_artists'])  # Album Artists
 
 
     if track_info['album_name']:
