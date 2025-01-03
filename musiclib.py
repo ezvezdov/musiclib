@@ -43,6 +43,31 @@ def _get_feat_artists(track_name):
 def _replace_slash(str):
     return str.replace("/","⁄")
 
+def _sanitize_filename(filename, replacement="_"):
+    """
+    Remove or replace unsupported characters in a filename.
+    :param filename: Original filename.
+    :param replacement: Character to replace unsupported characters.
+    :return: Sanitized filename.
+    """
+    # Define invalid characters for different platforms
+    if os.name == 'nt':  # Windows
+        invalid_chars = r'[<>:"/|?*\0]'  # Windows-specific invalid characters
+    else:  # macOS/Linux
+        invalid_chars = r'[\0]'
+    
+    # Replace invalid characters
+    sanitized = re.sub(invalid_chars, replacement, filename)
+    
+    # Handle reserved names in Windows (optional)
+    reserved_names = {'CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4',
+                      'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3',
+                      'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'}
+    if os.name == 'nt' and sanitized.upper().split('.')[0] in reserved_names:
+        sanitized = f"{replacement}{sanitized}"
+    
+    return sanitized
+
 def _get_image(url, retries=3, delay=2):
     for attempt in range(retries):
         response = requests.get(url, timeout=10)
@@ -311,6 +336,8 @@ class Musiclib():
 
         if 'path' in track_info:
             new_path = os.path.join(self.library_path,os.path.normpath(track_info['path']))
+
+        new_path = _sanitize_filename(new_path)
 
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
         os.rename(file_path, new_path)
