@@ -139,7 +139,12 @@ class Musiclib():
         tracks_metadata = {}
 
         if "albums" in artist_details:
-            for album in artist_details['albums']['results']:
+            albums = artist_details['albums']['results']
+
+            if artist_details['albums']['browseId']:
+                albums = self.ytmusic.get_artist_albums(artist_details['albums']['browseId'], params=None, limit=None)
+            
+            for album in albums:
                 album_details = self.ytmusic.get_album(album['browseId'])
                 for track in album_details['tracks']:        
                     track_info = _init_track_info()
@@ -158,7 +163,13 @@ class Musiclib():
 
                     tracks_metadata[track_info['ytm_id']] = track_info
         if "singles" in artist_details:
-            for track in artist_details['singles']['results']:
+            
+            singles = artist_details['singles']['results']
+            
+            if artist_details['singles']['browseId']:
+                singles = self.ytmusic.get_artist_albums(artist_details['singles']['browseId'], params=None, limit=None)
+
+            for track in singles:
 
                 album_details = self.ytmusic.get_album(track['browseId'])
 
