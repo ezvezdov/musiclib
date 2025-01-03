@@ -392,6 +392,18 @@ class MusiclibS(Musiclib):
         
         return track_info
 
+    def _get_all_artist_albums(self, artist_id):
+        albums = []
+        for album_type in ['album', 'single', 'compilation']:
+            results = self.sp.artist_albums(artist_id, album_type=album_type)
+            albums.extend(results['items'])
+
+            while results['next']:
+                results = self.sp.next(results)
+                albums.extend(results['items'])
+
+        return albums
+
     def _get_discography_by_artist(self,artist_name):
         results = self.sp.search(q=f"artist:{artist_name}", type="artist", limit=1)
         if results['artists']['items']:
@@ -403,30 +415,31 @@ class MusiclibS(Musiclib):
 
         tracks_metadata = []
 
-        for album_type in ['album', 'single', 'compilation']:
-            albums = self.sp.artist_albums(artist_id, album_type=album_type)
-            for album in albums['items']:
-                # Fetch tracks for each album
-                tracks = self.sp.album_tracks(album['id'])
-                for track in tracks['items']:
-                    track_info = _init_track_info()
-                    track_info['track_name'] = _trackname_remove_unnecessary(track['name'])
-                    track_info['track_artists'] = [artist['name'] for artist in track['artists']]
-                    track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
-                    track_info['release_date'] = album['release_date'].split("-")[0]
 
-                    if int(album['total_tracks']) > 1:
-                        track_info['album_name'] = album['name']
-                        track_info['track_number'] = track['track_number']
-                        track_info['total_tracks'] = album['total_tracks']
-                        track_info['album_artists'] = [artist['name'] for artist in album['artists']]
-                    else:
-                        track_info['album_artists'] = track_info['track_artists']
+        albums = self._get_all_artist_albums(artist_id)
 
-                    track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
-                    track_info['thumbnail'] = _get_image(album['images'][0]['url'])
+        for album in albums:
+            # Fetch tracks for each album
+            tracks = self.sp.album_tracks(album['id'])
+            for track in tracks['items']:
+                track_info = _init_track_info()
+                track_info['track_name'] = _trackname_remove_unnecessary(track['name'])
+                track_info['track_artists'] = [artist['name'] for artist in track['artists']]
+                track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
+                track_info['release_date'] = album['release_date'].split("-")[0]
 
-                    tracks_metadata.append(track_info)
+                if int(album['total_tracks']) > 1:
+                    track_info['album_name'] = album['name']
+                    track_info['track_number'] = track['track_number']
+                    track_info['total_tracks'] = album['total_tracks']
+                    track_info['album_artists'] = [artist['name'] for artist in album['artists']]
+                else:
+                    track_info['album_artists'] = track_info['track_artists']
+
+                track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
+                track_info['thumbnail'] = _get_image(album['images'][0]['url'])
+
+                tracks_metadata.append(track_info)
         return tracks_metadata
     
     def download_artist_discography(self, artist_name):
