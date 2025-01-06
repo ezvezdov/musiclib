@@ -228,7 +228,7 @@ class Musiclib():
         track_metadata = self._get_discography_by_artist_id(artist_id)
 
         for track_info in track_metadata:
-            self._download_by_id(id, track_info)
+            self._download_by_track_info(track_info)
     
     def download_track_by_name(self, search_term, download_top_result=False):
         tracks = self.ytmusic.search(search_term, filter="songs")
@@ -273,7 +273,7 @@ class Musiclib():
             track_info['thumbnail'] = _get_image(album_details['thumbnails'][-1]['url'])
 
             
-            self._download_by_id(track_info['ytm_id'],track_info)
+            self._download_by_track_info(track_info)
             return
     
     def backup_library(self):
@@ -309,9 +309,11 @@ class Musiclib():
             track_metadata = json.load(file)
         
         for track_info in track_metadata:
-            self._download_by_id(id, track_info)   
+            self._download_by_track_info(track_info)   
 
-    def _download_by_id(self, id, track_info):
+    def _download_by_track_info(self, track_info):
+
+        id = track_info.get('ytm_id','')
         if not id or id in self.db: return
 
         self.__download_track_youtube(id)
@@ -510,7 +512,7 @@ class MusiclibS(Musiclib):
             artists_str = ", ".join(artists)
             track_info['ytm_title'] = f"{artists_str} - {tracks[0]['title']}"
 
-            self._download_by_id(track_info['ytm_id'],track_info)
+            self._download_by_track_info(track_info)
 
 
 
