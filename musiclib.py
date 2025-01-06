@@ -482,6 +482,29 @@ class MusiclibS(Musiclib):
             track_info = album_metadata[album['track_number']-1]
             self._download_track_by_metdata(track_info)
 
+    def download_album_by_name(self, artist_name, album_name, download_top_result=False):
+        results = self.sp.search(q=f"album:{album_name} artist:{artist_name}", type="album", limit=20)
+
+        album_metadata = []
+
+        for album in results['albums']['items']:
+
+            album_name = album['name']
+            album_artists = [artist['name'] for artist in album['artists']]
+            album_artists_str = ", ".join(album_artists)
+
+            if not download_top_result:
+                album_full_name = album_artists_str + " - " + album_name
+                answer = input(f"Did you search album {album_full_name}? [y/n]: ")
+
+                # Skip current album
+                if answer.lower()[0] != 'y': continue
+            
+            album_metadata = self._get_album_metadata(album)
+            break
+
+        for track_info in album_metadata:
+            self._download_track_by_metdata(track_info)
     
     def _download_track_by_metdata(self, track_info):
         search_term = f"{track_info['track_artists_str']} - {track_info['track_name']}"
