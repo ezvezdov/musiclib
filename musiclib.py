@@ -497,6 +497,8 @@ class MusiclibS(Musiclib):
             album_metadata = self._get_album_metadata(album['album'])
             track_info = album_metadata[album['track_number']-1]
             self._download_track_by_metdata(track_info)
+            
+            break
     
     def _download_track_by_metdata(self, track_info):
         search_term = f"{track_info['track_artists_str']} - {track_info['track_name']}"
