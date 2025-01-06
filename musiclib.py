@@ -455,8 +455,8 @@ class MusiclibS(Musiclib):
         for track_info in tracks_metadata:
             self._download_track_by_metdata(track_info)
 
-    def download_album_by_name(self, artist_name, album_name, download_top_result=False):
-        results = self.sp.search(q=f"album:{album_name} artist:{artist_name}", type="album", limit=20)
+    def download_album_by_name(self, search_term, download_top_result=False):
+        results = self.sp.search(q=search_term, type="album", limit=20)
 
         album_metadata = []
 
@@ -478,12 +478,8 @@ class MusiclibS(Musiclib):
         for track_info in album_metadata:
             self._download_track_by_metdata(track_info)
 
-    def download_track_by_name(self, artist_name, track_name, download_top_result=False):
-        logging_utils.logging.debug(f"Get information about track: {artist_name} - {track_name}")
-
-        # Construct the query
-        query = f"track:{track_name} artist:{artist_name}"
-        results = self.sp.search(q=query, type="track", limit=20)
+    def download_track_by_name(self, search_term, download_top_result=False):
+        results = self.sp.search(q=search_term, type="track", limit=20)
 
         for album in results['tracks']['items']:
 
