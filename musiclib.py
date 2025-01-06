@@ -168,13 +168,18 @@ class Musiclib():
         if artist_name in self.artists_rename: return self.artists_rename[artist_name]
         return artist_name
 
-    def _get_discography_by_artist(self,artist_name):
+    def _get_artist_id(self, artist_name):
         search_results = self.ytmusic.search(artist_name, filter="artists")
         if not search_results:
-            return {}
+            artist_id = ''
+        else:
+            artist_id = search_results[0]['browseId']
+    
+        return artist_id
+
+    def _get_discography_by_artist_id(self,artist_id):
         
-        artist_browse_id = search_results[0]['browseId']
-        artist_details = self.ytmusic.get_artist(artist_browse_id)
+        artist_details = self.ytmusic.get_artist(artist_id)
 
         tracks_metadata = {}
 
@@ -211,7 +216,8 @@ class Musiclib():
         return tracks_metadata
     
     def download_artist_discography(self, artist_name):
-        track_metadata = self._get_discography_by_artist(artist_name)
+        artist_id = self._get_artist_id(artist_name)
+        track_metadata = self._get_discography_by_artist_id(artist_id)
 
         for id, track_info in track_metadata.items():
             self._download_by_id(id, track_info)
@@ -437,14 +443,16 @@ class MusiclibS(Musiclib):
 
         return albums
 
-    def _get_discography_by_artist(self,artist_name):
+
+    def _get_artist_id(self, artist_name):
         results = self.sp.search(q=f"artist:{artist_name}", type="artist", limit=1)
         if results['artists']['items']:
             artist = results['artists']['items'][0]
             artist_id = artist['id']
         else:
-            return {}
-
+            artist_id = ''
+    
+        return artist_id
 
         tracks_metadata = []
 
@@ -476,7 +484,9 @@ class MusiclibS(Musiclib):
         return tracks_metadata
     
     def download_artist_discography(self, artist_name):
-        tracks_metadata = self._get_discography_by_artist(artist_name)
+        artist_id = self._get_artist_id(artist_name)
+
+        tracks_metadata = self._get_discography_by_artist_id(artist_id)
 
         for track_info in tracks_metadata:
             self._download_track_by_metdata(track_info)
