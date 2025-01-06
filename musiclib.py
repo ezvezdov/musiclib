@@ -432,7 +432,7 @@ class MusiclibS(Musiclib):
 
     def _get_all_artist_albums(self, artist_id):
         albums = []
-        for album_type in ['album', 'single', 'compilation']:
+        for album_type in ['album', 'single']:
             results = self.sp.artist_albums(artist_id, album_type=album_type)
             albums.extend(results['items'])
 
