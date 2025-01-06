@@ -167,6 +167,32 @@ class Musiclib():
     def _artist_rename(self, artist_name):
         if artist_name in self.artists_rename: return self.artists_rename[artist_name]
         return artist_name
+    
+    def _get_album_metadata(self, ytm_album):
+        album_metadata = []
+
+        album_details = self.ytmusic.get_album(ytm_album['browseId'])
+        for track in album_details['tracks']:
+            track_info = _init_track_info()
+            track_info['ytm_id'] = track['videoId']
+            track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
+            track_info['track_artists'] = [self._artist_rename(artist['name']) for artist in track['artists']] + _get_feat_artists(track['title'])
+            track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
+            track_info['release_date'] = album_details['year']
+
+            if album_details['trackCount'] > 1:
+                track_info['album_name'] = _trackname_remove_unnecessary(album_details['title'])
+                track_info['track_number'] = track['trackNumber']
+                track_info['total_tracks'] = album_details['trackCount']
+
+            track_info['album_artists'] = [self._artist_rename(artist['name']) for artist in album_details['artists']] + _get_feat_artists(track_info['album_name'])
+            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
+            track_info['thumbnail'] = _get_image(album_details['thumbnails'][-1]['url'])
+            track_info['ytm_title'] = f"{track_info['track_artists_str']} - {track['title']}"
+
+            album_metadata.append(track_info)
+        
+        return album_metadata
 
     def _get_artist_id(self, artist_name):
         search_results = self.ytmusic.search(artist_name, filter="artists")
@@ -181,7 +207,7 @@ class Musiclib():
         
         artist_details = self.ytmusic.get_artist(artist_id)
 
-        tracks_metadata = {}
+        tracks_metadata = []
 
         for type in ["albums", "singles"]:
             if not type in artist_details: continue
@@ -192,34 +218,16 @@ class Musiclib():
                 albums = self.ytmusic.get_artist_albums(artist_details[type]['browseId'], params=None, limit=None)
             
             for album in albums:
-                album_details = self.ytmusic.get_album(album['browseId'])
+                album_metadata = self._get_album_metadata(album)
+                tracks_metadata.extend(album_metadata)
 
-                for track in album_details['tracks']:
-                    track_info = _init_track_info()
-                    track_info['ytm_id'] = track['videoId']
-                    track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
-                    track_info['track_artists'] = [self._artist_rename(artist['name']) for artist in track['artists']] + _get_feat_artists(track['title'])
-                    track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
-                    track_info['release_date'] = album_details['year']
-
-                    if album_details['trackCount'] > 1:
-                        track_info['album_name'] = _trackname_remove_unnecessary(album_details['title'])
-                        track_info['track_number'] = track['trackNumber']
-                        track_info['total_tracks'] = album_details['trackCount']
-
-                    track_info['album_artists'] = [self._artist_rename(artist['name']) for artist in album_details['artists']] + _get_feat_artists(track_info['album_name'])
-                    track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
-                    track_info['thumbnail'] = _get_image(album_details['thumbnails'][-1]['url'])
-                    track_info['ytm_title'] = f"{track_info['track_artists_str']} - {track['title']}"
-
-                    tracks_metadata[track_info['ytm_id']] = track_info
         return tracks_metadata
     
     def download_artist_discography(self, artist_name):
         artist_id = self._get_artist_id(artist_name)
         track_metadata = self._get_discography_by_artist_id(artist_id)
 
-        for id, track_info in track_metadata.items():
+        for track_info in track_metadata:
             self._download_by_id(id, track_info)
     
     def download_track_by_name(self, search_term, download_top_result=False):
@@ -269,7 +277,7 @@ class Musiclib():
             return
     
     def backup_library(self):
-        track_metadata = dict()
+        track_metadata = []
         mp3_files = _find_mp3_files(self.library_path)
         for mp3_path in mp3_files:
             track_info = tag_utils.get_tag_mp3(mp3_path)
@@ -277,7 +285,7 @@ class Musiclib():
             mp3_rpath = os.path.relpath(str(mp3_path), start=self.library_path)
             track_info['path'] = mp3_rpath
 
-            track_metadata[track_info['ytm_id']] = track_info
+            track_metadata.append(track_info)
         
 
         formatted_timestamp = time.strftime('%Y%m%d%H%M%S', time.localtime())
@@ -296,11 +304,11 @@ class Musiclib():
             print(f"File {backup_filepath} is directory.")
             return
         
-        track_metadata = {}
+        track_metadata = []
         with open(backup_filepath, "r", encoding="utf-8") as file:
             track_metadata = json.load(file)
         
-        for id, track_info in track_metadata.items():
+        for track_info in track_metadata:
             self._download_by_id(id, track_info)   
 
     def _download_by_id(self, id, track_info):
