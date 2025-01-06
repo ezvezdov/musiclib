@@ -298,7 +298,7 @@ class Musiclib():
             self._download_by_id(id, track_info)   
 
     def _download_by_id(self, id, track_info):
-        if id in self.db: return
+        if not id or id in self.db: return
 
         self.__download_track_youtube(id)
         
