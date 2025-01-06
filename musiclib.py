@@ -194,14 +194,21 @@ class Musiclib():
         
         return album_metadata
 
-    def _get_artist_id(self, artist_name):
+    def _get_artist_id(self, artist_name, download_top_result=False):
         search_results = self.ytmusic.search(artist_name, filter="artists")
-        if not search_results:
-            artist_id = ''
-        else:
-            artist_id = search_results[0]['browseId']
+        if not search_results: return ''
+
+        for artist in search_results:
+            if not download_top_result:
+                artist_name = artist['artist']
+                answer = input(f"Did you search artist {artist_name}? [y/n]: ")
+
+                # Skip current album
+                if answer.lower()[0] != 'y': continue
+
+            return artist['browseId']
     
-        return artist_id
+        return ''
 
     def _get_discography_by_artist_id(self,artist_id):
         
@@ -223,8 +230,10 @@ class Musiclib():
 
         return tracks_metadata
     
-    def download_artist_discography(self, artist_name):
-        artist_id = self._get_artist_id(artist_name)
+    def download_artist_discography(self, artist_name, download_top_result=False):
+        artist_id = self._get_artist_id(artist_name, download_top_result=download_top_result)
+        if not artist_id: return
+
         track_metadata = self._get_discography_by_artist_id(artist_id)
 
         for track_info in track_metadata:
@@ -424,15 +433,23 @@ class MusiclibS(Musiclib):
         
         return album_metadata
 
-    def _get_artist_id(self, artist_name):
+    def _get_artist_id(self, artist_name, download_top_result=False):
         results = self.sp.search(q=f"artist:{artist_name}", type="artist", limit=1)
-        if results['artists']['items']:
-            artist = results['artists']['items'][0]
-            artist_id = artist['id']
-        else:
-            artist_id = ''
+        if not results['artists']['items']: return ''
+
+        for artist in results['artists']['items']: 
+
+            if not download_top_result:
+                print(artist)
+                artist_name = artist['name']
+                answer = input(f"Did you search artist {artist_name}? [y/n]: ")
+
+                # Skip current album
+                if answer.lower()[0] != 'y': continue
+
+            return artist['id']
     
-        return artist_id
+        return ''
 
     def _get_discography_by_artist_id(self, artist_id):
         if not artist_id: return []
@@ -447,8 +464,8 @@ class MusiclibS(Musiclib):
 
         return tracks_metadata
     
-    def download_artist_discography(self, artist_name):
-        artist_id = self._get_artist_id(artist_name)
+    def download_artist_discography(self, artist_name, download_top_result=False):
+        artist_id = self._get_artist_id(artist_name, download_top_result=download_top_result)
 
         tracks_metadata = self._get_discography_by_artist_id(artist_id)
 
