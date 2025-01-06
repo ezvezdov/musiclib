@@ -178,53 +178,36 @@ class Musiclib():
 
         tracks_metadata = {}
 
-        if "albums" in artist_details:
-            albums = artist_details['albums']['results']
+        for type in ["albums", "singles"]:
+            if not type in artist_details: continue
 
-            if artist_details['albums']['browseId']:
-                albums = self.ytmusic.get_artist_albums(artist_details['albums']['browseId'], params=None, limit=None)
+            albums = artist_details[type]['results']
+
+            if artist_details[type]['browseId']:
+                albums = self.ytmusic.get_artist_albums(artist_details[type]['browseId'], params=None, limit=None)
             
             for album in albums:
                 album_details = self.ytmusic.get_album(album['browseId'])
-                for track in album_details['tracks']:        
+
+                for track in album_details['tracks']:
                     track_info = _init_track_info()
                     track_info['ytm_id'] = track['videoId']
                     track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
                     track_info['track_artists'] = [self._artist_rename(artist['name']) for artist in track['artists']] + _get_feat_artists(track['title'])
                     track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
                     track_info['release_date'] = album_details['year']
+
+                    if album_details['trackCount'] > 1:
+                        track_info['album_name'] = _trackname_remove_unnecessary(album_details['title'])
+                        track_info['track_number'] = track['trackNumber']
+                        track_info['total_tracks'] = album_details['trackCount']
+
                     track_info['album_artists'] = [self._artist_rename(artist['name']) for artist in album_details['artists']] + _get_feat_artists(track_info['album_name'])
                     track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
                     track_info['thumbnail'] = _get_image(album_details['thumbnails'][-1]['url'])
                     track_info['ytm_title'] = f"{track_info['track_artists_str']} - {track['title']}"
 
                     tracks_metadata[track_info['ytm_id']] = track_info
-        if "singles" in artist_details:
-            
-            singles = artist_details['singles']['results']
-            
-            if artist_details['singles']['browseId']:
-                singles = self.ytmusic.get_artist_albums(artist_details['singles']['browseId'], params=None, limit=None)
-
-            for track in singles:
-
-                album_details = self.ytmusic.get_album(track['browseId'])
-
-                track_info = _init_track_info()
-                track_info['ytm_id'] = album_details['tracks'][0]['videoId']
-                track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
-                track_info['track_artists'] = [artist['name'] for artist in album_details['artists']] + _get_feat_artists(track['title'])
-                track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
-                track_info['release_date'] = track['year']
-                track_info['track_number'] = ''
-                track_info['total_tracks'] = ''
-                track_info['album_artists'] = track_info['track_artists']
-                track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
-                track_info['thumbnail'] = _get_image(track['thumbnails'][-1]['url'])
-                track_info['ytm_title'] = f"{track_info['track_artists_str']} - {track['title']}"
-
-                tracks_metadata[track_info['ytm_id']] = track_info
-        
         return tracks_metadata
     
     def download_artist_discography(self, artist_name):
