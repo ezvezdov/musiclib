@@ -442,30 +442,6 @@ class MusiclibS(Musiclib):
         for track_info in tracks_metadata:
             self._download_track_by_metdata(track_info)
 
-    def download_track_by_name(self, artist_name, track_name, download_top_result=False):
-        logging_utils.logging.debug(f"Get information about track: {artist_name} - {track_name}")
-
-        # Construct the query
-        query = f"track:{track_name} artist:{artist_name}"
-        results = self.sp.search(q=query, type="track", limit=20)
-
-        for album in results['tracks']['items']:
-
-            track_name = album['name']
-            track_artists = [artist['name'] for artist in album['artists']]
-            track_artists_str = ", ".join(track_artists)
-
-            if not download_top_result:
-                track_full_name = track_artists_str + " - " + track_name
-                answer = input(f"Did you search track {track_full_name}? [y/n]: ")
-
-                # Skip current album
-                if answer.lower()[0] != 'y': continue
-            
-            album_metadata = self._get_album_metadata(album['album'])
-            track_info = album_metadata[album['track_number']-1]
-            self._download_track_by_metdata(track_info)
-
     def download_album_by_name(self, artist_name, album_name, download_top_result=False):
         results = self.sp.search(q=f"album:{album_name} artist:{artist_name}", type="album", limit=20)
 
@@ -488,6 +464,30 @@ class MusiclibS(Musiclib):
             break
 
         for track_info in album_metadata:
+            self._download_track_by_metdata(track_info)
+
+    def download_track_by_name(self, artist_name, track_name, download_top_result=False):
+        logging_utils.logging.debug(f"Get information about track: {artist_name} - {track_name}")
+
+        # Construct the query
+        query = f"track:{track_name} artist:{artist_name}"
+        results = self.sp.search(q=query, type="track", limit=20)
+
+        for album in results['tracks']['items']:
+
+            track_name = album['name']
+            track_artists = [artist['name'] for artist in album['artists']]
+            track_artists_str = ", ".join(track_artists)
+
+            if not download_top_result:
+                track_full_name = track_artists_str + " - " + track_name
+                answer = input(f"Did you search track {track_full_name}? [y/n]: ")
+
+                # Skip current album
+                if answer.lower()[0] != 'y': continue
+            
+            album_metadata = self._get_album_metadata(album['album'])
+            track_info = album_metadata[album['track_number']-1]
             self._download_track_by_metdata(track_info)
     
     def _download_track_by_metdata(self, track_info):
