@@ -374,63 +374,6 @@ class MusiclibS(Musiclib):
         # Authenticate with Spotify
         self.sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=api_key.spotify_client_id, client_secret=api_key.spotify_client_secret))
 
-    def _get_track_info_spotify(self, track_name, artist_name):
-        """
-        Retrieves detailed information about a specific track.
-
-        Searches for the track using the provided track name and artist name, fetches 
-        metadata such as album details, release date, track number, and thumbnail URL.
-        Also attempts to fetch lyrics for the track.
-
-        Args:
-            track_name (str): The name of the track.
-            artist_name (str): The name of the artist.
-
-        Returns:
-            dict: A dictionary containing track information with the following keys:
-                - `track_name` (str): Name of the track.
-                - `track_artists` (list[str]): List of artists who performed the track.
-                - `album_name` (str): Name of the album containing the track.
-                - `release_date` (str): Release date of the album.
-                - `track_number` (int): Track's position in the album.
-                - `total_tracks` (int): Total number of tracks in the album.
-                - `album_artists` (list[str]): List of artists credited for the album.
-                - `lyrics` (str): Lyrics of the track.
-                - `thumbnail_url` (str): URL of the album's thumbnail image.
-        """
-        logging_utils.logging.debug(f"Get information about track: {artist_name} - {track_name}")
-
-        # Construct the query
-        query = f"track:{track_name} artist:{artist_name}"
-        results = self.sp.search(q=query, type="track", limit=1)
-
-        track_info = _init_track_info()
-
-        if results.get('tracks', {}).get('items', []):
-            track = results['tracks']['items'][0]
-            album = track.get('album', {})
-
-            track_info['track_name'] = _trackname_remove_unnecessary(track.get('name', ''))
-            track_info['track_artists'] = [self._artist_rename(artist['name']) for artist in track['artists']]
-            track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
-            track_info['release_date'] = album.get('release_date', '')
-
-            if int(album['total_tracks']) > 1:
-                track_info['album_name'] = album.get('name', '')
-                track_info['track_number'] = track.get('track_number', '')
-                track_info['total_tracks'] = album.get('total_tracks', '')
-                track_info['album_artists'] = [self._artist_rename(artist['name']) for artist in album['artists']]
-            else:
-                track_info['album_artists'] = track_info['track_artists']
-
-            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
-            track_info['thumbnail'] = _get_image(album['images'][0]['url'])
-
-        else:
-            logging_utils.logging.warning(f"Track {artist_name} - {track_name} was not found.")
-        
-        return track_info
-
     def _get_all_artist_albums(self, artist_id):
         albums = []
         for album_type in ['album', 'single']:
