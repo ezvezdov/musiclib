@@ -230,6 +230,28 @@ class Musiclib():
         for track_info in track_metadata:
             self._download_by_track_info(track_info)
     
+    def download_album_by_name(self, search_querry, download_top_result=False):
+        results = self.ytmusic.search(query=f"{search_querry}", filter="albums", limit=20)
+
+        album = []
+
+        for album in results:
+            if not download_top_result:
+                album_name = album['title']
+                album_artists = [artist['name'] for artist in album['artists']]
+                album_artists_str = ", ".join(album_artists)
+                album_full_name = album_artists_str + " - " + album_name
+                answer = input(f"Did you search album {album_full_name}? [y/n]: ")
+
+                # Skip current album
+                if answer.lower()[0] != 'y': continue
+            
+            album_metadata = self._get_album_metadata(album)
+            break
+
+        for track_info in album_metadata:
+            self._download_by_track_info(track_info)
+
     def download_track_by_name(self, search_term, download_top_result=False):
         tracks = self.ytmusic.search(search_term, filter="songs")
         
