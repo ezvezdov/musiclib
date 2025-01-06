@@ -234,6 +234,8 @@ class Musiclib():
         artist_id = self._get_artist_id(artist_name, download_top_result=download_top_result)
         if not artist_id: return
 
+        print(f"Downloading the complete discography of the artist: {artist_name}")
+
         track_metadata = self._get_discography_by_artist_id(artist_id)
 
         for track_info in track_metadata:
@@ -440,7 +442,6 @@ class MusiclibS(Musiclib):
         for artist in results['artists']['items']: 
 
             if not download_top_result:
-                print(artist)
                 artist_name = artist['name']
                 answer = input(f"Did you search artist {artist_name}? [y/n]: ")
 
@@ -466,6 +467,8 @@ class MusiclibS(Musiclib):
     
     def download_artist_discography(self, artist_name, download_top_result=False):
         artist_id = self._get_artist_id(artist_name, download_top_result=download_top_result)
+        
+        print(f"Downloading the complete discography of the artist: {artist_name}")
 
         tracks_metadata = self._get_discography_by_artist_id(artist_id)
 
