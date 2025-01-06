@@ -168,10 +168,10 @@ class Musiclib():
         if artist_name in self.artists_rename: return self.artists_rename[artist_name]
         return artist_name
     
-    def _get_album_metadata(self, ytm_album):
+    def _get_album_metadata(self, ytm_album_id):
         album_metadata = []
 
-        album_details = self.ytmusic.get_album(ytm_album['browseId'])
+        album_details = self.ytmusic.get_album(ytm_album_id)
         for track in album_details['tracks']:
             track_info = _init_track_info()
             track_info['ytm_id'] = track['videoId']
@@ -218,7 +218,7 @@ class Musiclib():
                 albums = self.ytmusic.get_artist_albums(artist_details[type]['browseId'], params=None, limit=None)
             
             for album in albums:
-                album_metadata = self._get_album_metadata(album)
+                album_metadata = self._get_album_metadata(album['browseId'])
                 tracks_metadata.extend(album_metadata)
 
         return tracks_metadata
@@ -246,7 +246,7 @@ class Musiclib():
                 # Skip current album
                 if answer.lower()[0] != 'y': continue
             
-            album_metadata = self._get_album_metadata(album)
+            album_metadata = self._get_album_metadata(album['browseId'])
             break
 
         for track_info in album_metadata:
