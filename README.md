@@ -35,7 +35,14 @@ There are two classes that can be used:
 ## Available methods
 
 ### Downloading artist's discography
-`Musiclib.download_artist_discography(artist_name: str)`
+`Musiclib.download_artist_discography(artist_name: str, download_top_result=False)`
++ `artist_name`: Name of artist as a string.
++ `download_top_result`: If set to True, choose the first matching artist automatically. By default (False), it will prompt you to confirm if the match is correct.
+
+### Downloading album
+`Musiclib.download_album_by_name(search_term: str, download_top_result=False)`
++ `search_term`: The search query as a string. It is recommended to use the format: "artist1, artist2 - album_name".
++ `download_top_result`: If set to True, downloads the first matching result automatically. By default (False), it will prompt you to confirm if the match is correct.
 
 ### Download track
 `Musiclib.download_track_by_name(search_term: str, download_top_result=False)`
