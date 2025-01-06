@@ -481,11 +481,10 @@ class MusiclibS(Musiclib):
 
         for album in results['albums']['items']:
 
-            album_name = album['name']
-            album_artists = [artist['name'] for artist in album['artists']]
-            album_artists_str = ", ".join(album_artists)
-
             if not download_top_result:
+                album_name = album['name']
+                album_artists = [artist['name'] for artist in album['artists']]
+                album_artists_str = ", ".join(album_artists)
                 album_full_name = album_artists_str + " - " + album_name
                 answer = input(f"Did you search album {album_full_name}? [y/n]: ")
 
