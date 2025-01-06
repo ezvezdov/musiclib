@@ -122,6 +122,7 @@ class Musiclib():
 
         self.library_path = library_path
         self.db_path = "db.json"
+        self.artists_rename_path = "artists_rename.json"
         self._backup_path_prefix = "musiclib_backup_"
         self._init_library()
 
@@ -151,7 +152,21 @@ class Musiclib():
         self.info_path = os.path.join(self.library_path, self.info_path)
         os.makedirs(self.info_path, exist_ok=True)
         self.db_path = os.path.join(self.info_path, self.db_path)
+
+        # Artists_rename
+        self.artists_rename_path = os.path.join(self.info_path, self.artists_rename_path)
+        if not os.path.exists(self.artists_rename_path):
+            with open(self.artists_rename_path, "w", encoding="utf-8") as file:
+                json.dump({}, file, indent=4, ensure_ascii=False)
+            self.artists_rename = {}
+        else:
+            with open(self.artists_rename_path, "r", encoding="utf-8") as file:
+                self.artists_rename = json.load(file)
+
         
+    def _artist_rename(self, artist_name):
+        if artist_name in self.artists_rename: return self.artists_rename[artist_name]
+        return artist_name
 
     def _get_discography_by_artist(self,artist_name):
         search_results = self.ytmusic.search(artist_name, filter="artists")
@@ -175,13 +190,10 @@ class Musiclib():
                     track_info = _init_track_info()
                     track_info['ytm_id'] = track['videoId']
                     track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
-                    track_info['track_artists'] = [artist['name'] for artist in track['artists']]
+                    track_info['track_artists'] = [self._artist_rename(artist['name']) for artist in track['artists']] + _get_feat_artists(track['title'])
                     track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
-                    track_info['album_name'] = album_details['title']
                     track_info['release_date'] = album_details['year']
-                    track_info['track_number'] = track['trackNumber']
-                    track_info['total_tracks'] = album_details['trackCount']
-                    track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]                    
+                    track_info['album_artists'] = [self._artist_rename(artist['name']) for artist in album_details['artists']] + _get_feat_artists(track_info['album_name'])
                     track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
                     track_info['thumbnail'] = _get_image(album_details['thumbnails'][-1]['url'])
                     track_info['ytm_title'] = f"{track_info['track_artists_str']} - {track['title']}"
@@ -231,7 +243,7 @@ class Musiclib():
 
 
             track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
-            track_info['track_artists'] = [artist['name'] for artist in track['artists']] + _get_feat_artists(track['title'])
+            track_info['track_artists'] = [self._artist_rename(artist['name']) for artist in track['artists']] + _get_feat_artists(track['title'])
             track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
 
             # Doesn't work normally, because track can have videoId of track and videoId of clip.
@@ -252,7 +264,7 @@ class Musiclib():
             if album_details['trackCount'] > 1:
                 track_info['total_tracks'] = album_details['trackCount']
                 track_info['album_name'] = album_details['title']
-                track_info['album_artists'] = [artist['name'] for artist in album_details['artists']]
+                track_info['album_artists'] = [self._artist_rename(artist['name']) for artist in album_details['artists']]
 
                 for t in album_details['tracks']:
                     if t['title'] == track_info['track_name']:
@@ -410,7 +422,7 @@ class MusiclibS(Musiclib):
             album = track.get('album', {})
 
             track_info['track_name'] = _trackname_remove_unnecessary(track.get('name', ''))
-            track_info['track_artists'] = [artist['name'] for artist in track['artists']]
+            track_info['track_artists'] = [self._artist_rename(artist['name']) for artist in track['artists']]
             track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
             track_info['release_date'] = album.get('release_date', '')
 
@@ -418,7 +430,7 @@ class MusiclibS(Musiclib):
                 track_info['album_name'] = album.get('name', '')
                 track_info['track_number'] = track.get('track_number', '')
                 track_info['total_tracks'] = album.get('total_tracks', '')
-                track_info['album_artists'] = [artist['name'] for artist in album['artists']]
+                track_info['album_artists'] = [self._artist_rename(artist['name']) for artist in album['artists']]
             else:
                 track_info['album_artists'] = track_info['track_artists']
 
@@ -462,7 +474,7 @@ class MusiclibS(Musiclib):
             for track in tracks['items']:
                 track_info = _init_track_info()
                 track_info['track_name'] = _trackname_remove_unnecessary(track['name'])
-                track_info['track_artists'] = [artist['name'] for artist in track['artists']]
+                track_info['track_artists'] = [self._artist_rename(artist['name']) for artist in track['artists']]
                 track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
                 track_info['release_date'] = album['release_date'].split("-")[0]
 
@@ -470,7 +482,7 @@ class MusiclibS(Musiclib):
                     track_info['album_name'] = album['name']
                     track_info['track_number'] = track['track_number']
                     track_info['total_tracks'] = album['total_tracks']
-                    track_info['album_artists'] = [artist['name'] for artist in album['artists']]
+                    track_info['album_artists'] = [self._artist_rename(artist['name']) for artist in album['artists']]
                 else:
                     track_info['album_artists'] = track_info['track_artists']
 
