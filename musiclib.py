@@ -443,6 +443,30 @@ class MusiclibS(Musiclib):
 
         return albums
 
+    def _get_album_metadata(self, spotify_album):
+        album_metadata = []
+        tracks = self.sp.album_tracks(spotify_album['id'])
+        for track in tracks['items']:
+            track_info = _init_track_info()
+            track_info['track_name'] = _trackname_remove_unnecessary(track['name'])
+            track_info['track_artists'] = [self._artist_rename(artist['name']) for artist in track['artists']]
+            track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
+            track_info['release_date'] = spotify_album['release_date'].split("-")[0]
+
+            if int(spotify_album['total_tracks']) > 1:
+                track_info['album_name'] = spotify_album['name']
+                track_info['track_number'] = track['track_number']
+                track_info['total_tracks'] = spotify_album['total_tracks']
+                track_info['album_artists'] = [self._artist_rename(artist['name']) for artist in spotify_album['artists']]
+            else:
+                track_info['album_artists'] = track_info['track_artists']
+
+            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
+            track_info['thumbnail'] = _get_image(spotify_album['images'][0]['url'])
+
+            album_metadata.append(track_info)
+        
+        return album_metadata
 
     def _get_artist_id(self, artist_name):
         results = self.sp.search(q=f"artist:{artist_name}", type="artist", limit=1)
