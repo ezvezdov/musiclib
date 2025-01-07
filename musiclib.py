@@ -356,23 +356,30 @@ class Musiclib():
 
     def __move_downloaded_track(self, id, track_info):
         file_path = os.path.join(self.library_path, f"{id}{EXT}")
-        new_filename = _replace_slash(track_info['track_artists_str']) + " - " + _replace_slash(track_info['track_name']) + EXT
 
-        new_path = os.path.join(self.library_path, track_info['track_artists'][0], new_filename)
+        # Specify filename
+        new_filename = _sanitize_filename(track_info['track_artists_str'] + " - " + track_info['track_name'] + EXT)
+        if track_info['track_number']:
+            new_filename = f"{track_info['track_number']}. {new_filename}"
+
+        artist_dir = _sanitize_filename(track_info['track_artists'][0])
+
+        album_dir = ''
         if track_info['total_tracks']:
-            if track_info['track_number']:
-                new_filename = f"{track_info['track_number']}. {new_filename}"
-            release_year = track_info['release_date'].split("-")[0]
-            new_path = os.path.join(self.library_path, _replace_slash(track_info['track_artists'][0]), f"[{release_year}] {_replace_slash(track_info['album_name'])}", new_filename)
+            album_dir = _sanitize_filename(f"[{track_info['release_date']}] {track_info['album_name']}")
 
+        # Join path components
+        new_path = os.path.join(artist_dir, album_dir, new_filename)
+
+        # If file exists
         if os.path.exists(new_path):
-            rpath = os.path.relpath(new_path, start=self.library_path)
-            new_path = os.path.join(self.library_path, "DUPLICATE", rpath)
+            new_path = os.path.join("DUPLICATE", new_path)
 
+        # If there is specified path in track_info
         if 'path' in track_info:
-            new_path = os.path.join(self.library_path,os.path.normpath(track_info['path']))
+            new_path = _sanitize_filename(os.path.normpath(track_info['path']))
 
-        new_path = _sanitize_filename(new_path)
+        new_path = os.path.join(self.library_path, new_path)
 
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
         os.rename(file_path, new_path)
