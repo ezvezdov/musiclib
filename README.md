@@ -4,6 +4,9 @@ Musiclib is a Python script that allows you to create your own music library.
 Music is downloaded from YouTube, and music tags are constructed using data from YouTube and Spotify.
 
 # Instalation
+
+Ensure that you have installed [FFmpeg](https://ffmpeg.org/download.html).
+
 ```bash
 git clone https://github.com/ezvezdov/musiclib
 cd musiclib/
