@@ -286,7 +286,7 @@ class Musiclib():
                 album_artists = [artist['name'] for artist in song['artists']]
                 album_artists_str = ", ".join(album_artists)
                 album_full_name = album_artists_str + " - " + album_name
-                answer = input(f"Did you search album {album_full_name}? [y/n]: ")
+                answer = input(f"Did you search track {album_full_name}? [y/n]: ")
 
                 # Skip current album
                 if answer.lower()[0] != 'y': continue
