@@ -358,7 +358,7 @@ class Musiclib():
         file_path = os.path.join(self.library_path, f"{id}{EXT}")
 
         # Specify filename
-        new_filename = _sanitize_filename(track_info['track_artists_str'] + " - " + track_info['track_name'] + EXT)
+        new_filename = _sanitize_filename(_replace_slash(track_info['track_artists_str'] + " - " + track_info['track_name'] + EXT))
         if track_info['track_number']:
             new_filename = f"{track_info['track_number']}. {new_filename}"
 
@@ -366,7 +366,7 @@ class Musiclib():
 
         album_dir = ''
         if track_info['total_tracks']:
-            album_dir = _sanitize_filename(f"[{track_info['release_date']}] {track_info['album_name']}")
+            album_dir = _sanitize_filename(_replace_slash(f"[{track_info['release_date']}] {track_info['album_name']}"))
 
         # Join path components
         new_path = os.path.join(artist_dir, album_dir, new_filename)
