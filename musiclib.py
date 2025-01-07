@@ -52,7 +52,17 @@ def _sanitize_filename(filename, replacement="_"):
     """
     # Define invalid characters for different platforms
     if os.name == 'nt':  # Windows
-        invalid_chars = r'[<>:"/|?*\0]'  # Windows-specific invalid characters
+        invalid_chars = r'[|\0]'  # Windows-specific invalid characters
+        
+        filename = re.sub(r'[:]', "：", filename)
+        filename = re.sub(r'[?]', "？", filename)
+        filename = re.sub(r'[*]', "＊", filename)
+        filename = re.sub(r'[<]', "＜", filename)
+        filename = re.sub(r'[>]', "＞", filename)
+        filename = re.sub(r'[/]', "／", filename)
+        filename = re.sub(r'["]', "\'\'", filename)
+        
+
     else:  # macOS/Linux
         invalid_chars = r'[\0]'
     
