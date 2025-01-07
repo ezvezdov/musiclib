@@ -188,7 +188,7 @@ class Musiclib():
             track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
             track_info['track_artists'] = [_replace_slash(self._artist_rename(artist['name'])) for artist in track['artists']] + _get_feat_artists(track['title'])
             track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
-            track_info['release_date'] = album_details['year']
+            track_info['release_date'] = album_details['year'] if 'year' in album_details else ''
 
             if album_details['trackCount'] > 1:
                 track_info['album_name'] = _trackname_remove_unnecessary(album_details['title'])
@@ -372,7 +372,7 @@ class Musiclib():
         new_path = os.path.join(artist_dir, album_dir, new_filename)
 
         # If file exists
-        if os.path.exists(new_path):
+        if os.path.exists(os.path.join(self.library_path,new_path)):
             new_path = os.path.join("DUPLICATE", new_path)
 
         # If there is specified path in track_info
