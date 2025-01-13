@@ -50,13 +50,13 @@ def add_tag_mp3(audio_path, track_info):
     if track_info['lyrics']:
         audio['USLT'] = USLT(encoding=3, lang='XXX', desc='', text=track_info['lyrics'])  # Lyrics
 
-    if track_info['thumbnail']:
+    if track_info['cover']:
         audio['APIC'] = APIC(
                 encoding=3,  # UTF-8 encoding
                 mime='image/jpeg',  # MIME type
                 type=3,  # Cover (front)
-                desc='Thumbnail',
-                data=base64.b64decode(track_info['thumbnail']),  # Image data
+                desc='cover',
+                data=base64.b64decode(track_info['cover']),  # Image data
             )
         
     # Save changes
@@ -81,6 +81,6 @@ def get_tag_mp3(audio_path):
     track_info['track_number'] = audio['TRCK'][0].split('/')[0] if 'TRCK' in audio else '' # Track Number
     track_info['total_tracks'] = audio['TRCK'][0].split('/')[-1] if 'TRCK' in audio else '' # Total Tracks
     track_info['lyrics'] = audio['USLT::XXX'].text if 'USLT::XXX' in audio else '' # Lyrics
-    track_info['thumbnail'] = base64.b64encode(audio['APIC:Thumbnail'].data).decode('utf-8') if 'APIC:Thumbnail' in audio else ''
+    track_info['cover'] = base64.b64encode(audio['APIC:cover'].data).decode('utf-8') if 'APIC:cover' in audio else ''
     
     return track_info

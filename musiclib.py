@@ -105,7 +105,7 @@ def _init_track_info():
     track_info['track_number'] = ""
     track_info['total_tracks'] = ""
     track_info['lyrics'] = ""
-    track_info['thumbnail'] = ""
+    track_info['cover'] = ""
     return track_info
 
 class Musiclib():
@@ -197,7 +197,7 @@ class Musiclib():
 
             track_info['album_artists'] = [_replace_slash(self._artist_rename(artist['name'])) for artist in album_details['artists']] + _get_feat_artists(track_info['album_name'])
             track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
-            track_info['thumbnail'] = _get_image(album_details['thumbnails'][-1]['url'])
+            track_info['cover'] = _get_image(album_details['thumbnails'][-1]['url'])
             track_info['ytm_title'] = f"{track_info['track_artists_str']} - {track['title']}"
 
             album_metadata.append(track_info)
@@ -446,7 +446,7 @@ class MusiclibS(Musiclib):
                 track_info['album_artists'] = track_info['track_artists']
 
             track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
-            track_info['thumbnail'] = _get_image(spotify_album['images'][0]['url'])
+            track_info['cover'] = _get_image(spotify_album['images'][0]['url'])
 
             album_metadata.append(track_info)
         
