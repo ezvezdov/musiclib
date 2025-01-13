@@ -557,8 +557,8 @@ if __name__ == "__main__":
     library_path = input("Please enter the path for music library: ").strip()
     artist_name = input("Please enter artist name: ").strip()
 
-    # ml = Musiclib(library_path)
-    # ml.download_artist_discography(artist_name)
+    ml = Musiclib(library_path)
+    ml.download_artist_discography(artist_name)
 
-    mls = MusiclibS(library_path)
-    mls.download_artist_discography(artist_name)
+    # mls = MusiclibS(library_path)
+    # mls.download_artist_discography(artist_name)
