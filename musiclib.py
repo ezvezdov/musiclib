@@ -118,11 +118,9 @@ class Musiclib():
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',  # Set preferred codec to MP3
-                'preferredquality': '192',  # Set preferred quality (in kbps)
             }],
             'postprocessor_args': [
                 '-id3v2_version', '3',  # Use ID3v2.3 tags for maximum compatibility
-                '-b:a', '192k'  # Set audio bitrate to 192 kbps
             ],
             'quiet': True,  # Show progress and details
             'cookiefile': "assets/cookies.txt",
