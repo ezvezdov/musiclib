@@ -292,10 +292,14 @@ class Musiclib():
             song_id = song['videoId']
             album_metadata = self._get_album_metadata(song['album']['id'])
             break
-        
-        for track_info in album_metadata:
-            if track_info['ytm_id'] == song_id:
-                self._download_by_track_info(track_info)
+
+        if len(album_metadata) == 1:
+            track_info = album_metadata[0]
+            self._download_by_track_info(track_info)
+        else:
+            for track_info in album_metadata:
+                if track_info['ytm_id'] == song_id:
+                    self._download_by_track_info(track_info)
 
 
     def backup_library(self):
