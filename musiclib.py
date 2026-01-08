@@ -14,7 +14,7 @@ import spotipy
 import api_key
 
 import lyrics_utils
-import tag_utils
+import tag_utils.tag_utils as tag_utils
 import logging_utils
 
 
@@ -304,12 +304,12 @@ class Musiclib():
 
     def backup_library(self):
         track_metadata = []
-        mp3_files = _find_mp3_files(self.library_path)
-        for mp3_path in mp3_files:
-            track_info = tag_utils.get_tag_mp3(mp3_path)
+        audio_files = _find_audio_files(self.library_path)
+        for audio_path in audio_files:
+            track_info = tag_utils.get_tag(audio_path)
 
-            mp3_rpath = os.path.relpath(str(mp3_path), start=self.library_path)
-            track_info['path'] = mp3_rpath
+            audio_rpath = os.path.relpath(str(audio_path), start=self.library_path)
+            track_info['path'] = audio_rpath
 
             track_metadata.append(track_info)
         
@@ -347,7 +347,7 @@ class Musiclib():
         file_path = os.path.join(self.library_path, f"{id}{EXT}")
 
         # Add tag to the track
-        tag_utils.add_tag_mp3(file_path,track_info)
+        tag_utils.add_tag(file_path,track_info)
 
         # Rename and move track
         self.__move_downloaded_track(id, track_info)

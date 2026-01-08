@@ -4,7 +4,7 @@ from mutagen.id3 import ID3, TIT2, TPE1, TPE2, TALB, TDRC, TRCK, USLT, APIC, TXX
 
 
 
-def add_tag_mp3(audio_path, track_info):
+def add_tag(audio_path, track_info):
     """
     Adds or updates ID3 tags for an MP3 file.
 
@@ -63,7 +63,7 @@ def add_tag_mp3(audio_path, track_info):
     audio.save()
 
 
-def get_tag_mp3(audio_path):
+def get_tag(audio_path):
     # Load the MP3 file
     audio = MP3(audio_path, ID3=ID3)
 
