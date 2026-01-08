@@ -317,7 +317,7 @@ class Musiclib():
         track_metadata = []
         audio_files = _find_audio_files(self.library_path)
         for audio_path in audio_files:
-            track_info = tag_utils.get_tag(audio_path)
+            track_info = tag_utils.get_tag(str(audio_path))
 
             audio_rpath = os.path.relpath(str(audio_path), start=self.library_path)
             track_info['path'] = audio_rpath
