@@ -18,7 +18,6 @@ import tag_utils.tag_utils as tag_utils
 import logging_utils
 
 
-EXT = ".mp3"
 
 def _trackname_remove_unnecessary(track_name):
     name = re.sub(r'\(feat.*?\)|\(ft.*?\)|feat.*|ft.*|\(Feat.*?\)|\(Ft.*?\)|\(prod.*?\)|\[prod.*?\]|\(Prod.*?\)', '', track_name)
@@ -89,8 +88,13 @@ def _get_image(url, retries=3, delay=2):
     logging_utils.logging.warning(f"Failed to download image. Status code: {response.status_code}")
     return {}
 
-def _find_mp3_files(directory):
-    return list(Path(directory).rglob("*.mp3"))
+def _find_audio_files(directory):
+    extensions = {'.mp3', '.opus'}
+    
+    return [
+        p for p in Path(directory).rglob("*") 
+        if p.suffix.lower() in extensions
+    ]
 
 def _init_track_info():
     track_info = {}
@@ -109,21 +113,28 @@ def _init_track_info():
     return track_info
 
 class Musiclib():
-    def __init__(self, library_path):
+    def __init__(self, library_path, codec="opus", skip_downloaded=False):
+        """
+        Docstring for __init__
+        
+        :param library_path: path to the music library
+        :param codec: preferred codec for downloaded audio (opus, mp3, m4a)
+        :param skip_downloaded: whether to skip already downloaded tracks based on the database
+        """
+
+        self.extension = "." + codec.lower()
 
         self.ydl_opts = {
-            'format': 'bestaudio/best',  # Select the best audio format available
-            'outtmpl': '%(id)s.%(ext)s',  # Custom output template
+            'format': 'bestaudio',
+            'outtmpl': '%(id)s.%(ext)s',
             'retries': 5,  # Retry 5 times for errors
             'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',  # Set preferred codec to MP3
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': codec,
+                    'preferredquality': '0', # Best quality
             }],
-            'postprocessor_args': [
-                '-id3v2_version', '3',  # Use ID3v2.3 tags for maximum compatibility
-            ],
-            'quiet': True,  # Show progress and details
-            'cookiefile': "assets/cookies.txt",
+            'quiet': True,
+            'cookiefile': 'assets/cookies.txt'
         }
 
         self.info_path = '.musiclib'
@@ -344,7 +355,7 @@ class Musiclib():
 
         self.__download_track_youtube(id)
         
-        file_path = os.path.join(self.library_path, f"{id}{EXT}")
+        file_path = os.path.join(self.library_path, f"{id}{self.extension}")
 
         # Add tag to the track
         tag_utils.add_tag(file_path,track_info)
@@ -357,10 +368,10 @@ class Musiclib():
         self.__write_db()
 
     def __move_downloaded_track(self, id, track_info):
-        file_path = os.path.join(self.library_path, f"{id}{EXT}")
+        file_path = os.path.join(self.library_path, f"{id}{self.extension}")
 
         # Specify filename
-        new_filename = _sanitize_filename(_replace_slash(track_info['track_artists_str'] + " - " + track_info['track_name'] + EXT))
+        new_filename = _sanitize_filename(_replace_slash(track_info['track_artists_str'] + " - " + track_info['track_name'] + self.extension))
         if track_info['track_number']:
             new_filename = f"{track_info['track_number']}. {new_filename}"
 
