@@ -137,12 +137,16 @@ class Musiclib():
             'cookiefile': 'assets/cookies.txt'
         }
 
+        self.use_db = skip_downloaded
+
         self.info_path = '.musiclib'
 
         self.library_path = library_path
         self.db_path = "db.json"
         self.artists_rename_path = "artists_rename.json"
         self._backup_path_prefix = "musiclib_backup_"
+        self.missing_path = "missing.json"
+
         self._init_library()
 
         self.db = {}
@@ -350,23 +354,38 @@ class Musiclib():
             self._download_by_track_info(track_info)   
 
     def _download_by_track_info(self, track_info):
+        try:
+            id = track_info.get('ytm_id','')
+            if not id: return
 
-        id = track_info.get('ytm_id','')
-        if not id or id in self.db: return
+            if self.use_db and id in self.db: return
 
-        self.__download_track_youtube(id)
-        
-        file_path = os.path.join(self.library_path, f"{id}{self.extension}")
+            self.__download_track_youtube(id)
+            
+            file_path = os.path.join(self.library_path, f"{id}{self.extension}")
 
-        # Add tag to the track
-        tag_utils.add_tag(file_path,track_info)
+            # Add tag to the track
+            tag_utils.add_tag(file_path,track_info)
 
-        # Rename and move track
-        self.__move_downloaded_track(id, track_info)
-        
-        # Save database
-        self.db[id] = track_info['track_artists_str'] + " - " + track_info['track_name']
-        self.__write_db()
+            # Rename and move track
+            self.__move_downloaded_track(id, track_info)
+            
+            # Save database
+            self.db[id] = track_info['track_artists_str'] + " - " + track_info['track_name']
+            self.__write_db()
+        except Exception as e:
+            missing_path = os.path.join(self.library_path, self.missing_path)
+
+            if os.path.exists(missing_path):
+                with open(missing_path, "r", encoding="utf-8") as file:
+                    missing_track_metadata = json.load(file)
+                missing_track_metadata.append(track_info)
+            else:
+                missing_track_metadata = [track_info]
+            
+            json.dump(missing_track_metadata, open(missing_path, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
+            logging_utils.logging.error(f"Error downloading track {track_info.get('track_name','Unknown')} with id {track_info.get('ytm_id','Unknown')}: {e}")
+            print(f"Error downloading track {track_info.get('track_name','Unknown')} with id {track_info.get('ytm_id','Unknown')}: {e}")            
 
     def __move_downloaded_track(self, id, track_info):
         file_path = os.path.join(self.library_path, f"{id}{self.extension}")
