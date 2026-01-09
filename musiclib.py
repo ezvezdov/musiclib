@@ -320,7 +320,8 @@ class Musiclib():
             track_info = tag_utils.get_tag(str(audio_path))
 
             audio_rpath = os.path.relpath(str(audio_path), start=self.library_path)
-            track_info['path'] = audio_rpath
+            name, ext = os.path.splitext(audio_rpath)
+            track_info['path'] = name
 
             track_metadata.append(track_info)
         
