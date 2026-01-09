@@ -372,7 +372,7 @@ class Musiclib():
         file_path = os.path.join(self.library_path, f"{id}{self.extension}")
 
         # Specify filename
-        new_filename = _sanitize_filename(_replace_slash(track_info['track_artists_str'] + " - " + track_info['track_name'] + self.extension))
+        new_filename = _sanitize_filename(_replace_slash(track_info['track_artists_str'] + " - " + track_info['track_name']))
         if track_info['track_number']:
             new_filename = f"{track_info['track_number']}. {new_filename}"
 
@@ -386,14 +386,14 @@ class Musiclib():
         new_path = os.path.join(artist_dir, album_dir, new_filename)
 
         # If file exists
-        if os.path.exists(os.path.join(self.library_path,new_path)):
+        if os.path.exists(os.path.join(self.library_path,new_path + self.extension)):
             new_path = os.path.join("DUPLICATE", new_path)
 
         # If there is specified path in track_info
         if 'path' in track_info:
-            new_path = _sanitize_filename(os.path.normpath(track_info['path']))
+            new_path = os.path.normpath(track_info['path'])
 
-        new_path = os.path.join(self.library_path, new_path)
+        new_path = os.path.join(self.library_path, new_path + self.extension)
 
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
         os.rename(file_path, new_path)
