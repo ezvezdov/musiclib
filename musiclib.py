@@ -295,11 +295,11 @@ class Musiclib():
         for song in results:
 
             if not download_top_result:
-                album_name = song['title']
-                album_artists = [artist['name'] for artist in song['artists']]
-                album_artists_str = ", ".join(album_artists)
-                album_full_name = album_artists_str + " - " + album_name
-                answer = input(f"Did you search track {album_full_name}? [y/n]: ")
+                song_name = song['title']
+                song_artists = [artist['name'] for artist in song['artists']]
+                song_artists_str = ", ".join(song_artists)
+                song_full_name = song_artists_str + " - " + song_name
+                answer = input(f"Did you search track {song_full_name}? [y/n]: ")
 
                 # Skip current album
                 if answer.lower()[0] != 'y': continue
