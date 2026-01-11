@@ -291,7 +291,6 @@ class Musiclib():
         results = self.ytmusic.search(search_term, filter="songs")
 
         song_id = ''
-        album_metadata = []
 
         for song in results:
 
