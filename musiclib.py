@@ -191,7 +191,7 @@ class Musiclib():
         if artist_name in self.artists_rename: return self.artists_rename[artist_name]
         return artist_name
     
-    def _get_album_metadata(self, ytm_album_id):
+    def _get_album_metadata(self, ytm_album_id, single_id=None, single_name=None):
         album_metadata = []
 
         album_details = self.ytmusic.get_album(ytm_album_id)
@@ -199,6 +199,12 @@ class Musiclib():
             track_info = _init_track_info()
             track_info['ytm_id'] = track['videoId']
             track_info['track_name'] = _trackname_remove_unnecessary(track['title'])
+
+            # Single downloading
+            if not single_name is None and not single_id is None and len(album_details['tracks']) > 1:
+                if track['title'] != single_name and track_info['ytm_id'] != single_id:
+                    continue
+
             track_info['track_artists'] = [_replace_slash(self._artist_rename(artist['name'])) for artist in track['artists']] + _get_feat_artists(track['title'])
             track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
             track_info['release_date'] = album_details['year'] if 'year' in album_details else ''
@@ -212,6 +218,9 @@ class Musiclib():
             track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'], ytmusic=self.ytmusic, id=track_info['ytm_id'])
             track_info['cover'] = _get_image(album_details['thumbnails'][-1]['url'])
             track_info['ytm_title'] = f"{track_info['track_artists_str']} - {track['title']}"
+
+            # Download the track
+            self._download_by_track_info(track_info)
 
             album_metadata.append(track_info)
         
@@ -237,8 +246,6 @@ class Musiclib():
         
         artist_details = self.ytmusic.get_artist(artist_id)
 
-        tracks_metadata = []
-
         for type in ["albums", "singles"]:
             if not type in artist_details: continue
 
@@ -248,10 +255,8 @@ class Musiclib():
                 albums = self.ytmusic.get_artist_albums(artist_details[type]['browseId'], params=None, limit=None)
             
             for album in albums:
-                album_metadata = self._get_album_metadata(album['browseId'])
-                tracks_metadata.extend(album_metadata)
+                self._get_album_metadata(album['browseId'])
 
-        return tracks_metadata
     
     def download_artist_discography(self, artist_name, download_top_result=False):
         artist_id = self._get_artist_id(artist_name, download_top_result=download_top_result)
@@ -259,10 +264,8 @@ class Musiclib():
 
         print(f"Downloading the complete discography of the artist: {artist_name}")
 
-        track_metadata = self._get_discography_by_artist_id(artist_id)
+        self._get_discography_by_artist_id(artist_id)
 
-        for track_info in track_metadata:
-            self._download_by_track_info(track_info)
     
     def download_album_by_name(self, search_querry, download_top_result=False):
         results = self.ytmusic.search(query=f"{search_querry}", filter="albums", limit=20)
@@ -280,11 +283,9 @@ class Musiclib():
                 # Skip current album
                 if answer.lower()[0] != 'y': continue
             
-            album_metadata = self._get_album_metadata(album['browseId'])
+            self._get_album_metadata(album['browseId'])
             break
 
-        for track_info in album_metadata:
-            self._download_by_track_info(track_info)
 
     def download_track_by_name(self, search_term, download_top_result=False):
         results = self.ytmusic.search(search_term, filter="songs")
@@ -305,16 +306,8 @@ class Musiclib():
                 if answer.lower()[0] != 'y': continue
 
             song_id = song['videoId']
-            album_metadata = self._get_album_metadata(song['album']['id'])
+            self._get_album_metadata(song['album']['id'], single_id=song_id, single_name=song_name)
             break
-
-        if len(album_metadata) == 1:
-            track_info = album_metadata[0]
-            self._download_by_track_info(track_info)
-        else:
-            for track_info in album_metadata:
-                if track_info['ytm_id'] == song_id:
-                    self._download_by_track_info(track_info)
 
 
     def backup_library(self):
