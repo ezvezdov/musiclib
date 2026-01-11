@@ -290,8 +290,6 @@ class Musiclib():
     def download_track_by_name(self, search_term, download_top_result=False):
         results = self.ytmusic.search(search_term, filter="songs")
 
-        song_id = ''
-
         for song in results:
 
             if not download_top_result:
@@ -305,6 +303,7 @@ class Musiclib():
                 if answer.lower()[0] != 'y': continue
 
             song_id = song['videoId']
+            song_name = song['title']
             self._get_album_metadata(song['album']['id'], single_id=song_id, single_name=song_name)
             break
 
