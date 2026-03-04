@@ -1,4 +1,8 @@
+import os
 import logging
+
+# Ensure the logs directory exists
+os.makedirs('logs', exist_ok=True)
 
 # Configure basic logging
 logging.basicConfig(
