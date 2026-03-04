@@ -1,8 +1,8 @@
 import os
 import syncedlyrics
 
-import logging_utils
-import tag_utils
+from . import logging_utils
+from .tag_utils import tag_utils
 
 def _convert_to_timestamp(ms):
     seconds = ms // 1000

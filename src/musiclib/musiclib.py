@@ -8,14 +8,10 @@ from pathlib import Path
 
 import yt_dlp
 from ytmusicapi import YTMusic
-from spotipy.oauth2 import SpotifyClientCredentials
-import spotipy
 
-import api_key
-
-import lyrics_utils
-import tag_utils.tag_utils as tag_utils
-import logging_utils
+from . import lyrics_utils
+from .tag_utils import tag_utils
+from . import logging_utils
 
 
 
@@ -431,12 +427,13 @@ class Musiclib():
         with open(self.db_path, "r", encoding="utf-8") as file:
             self.db = json.load(file)
 
-
-
-
-if __name__ == "__main__":
+def main():
     library_path = input("Please enter the path for music library: ").strip()
     artist_name = input("Please enter artist name: ").strip()
 
     ml = Musiclib(library_path)
     ml.download_artist_discography(artist_name)
+
+
+if __name__ == "__main__":
+    main()
