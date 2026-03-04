@@ -209,6 +209,7 @@ class Musiclib():
             track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
             track_info['release_date'] = album_details['year'] if 'year' in album_details else ''
 
+            # TODO: Set album and track number in singles too
             if album_details['trackCount'] > 1:
                 track_info['album_name'] = _trackname_remove_unnecessary(album_details['title'])
                 track_info['track_number'] = track['trackNumber']
@@ -262,7 +263,7 @@ class Musiclib():
         artist_id = self._get_artist_id(artist_name, download_top_result=download_top_result)
         if not artist_id: return
 
-        print(f"Downloading the complete discography of the artist: {artist_name}")
+        print(f"Downloading the complete discography of the artist: {self.artists_rename.get(artist_name, artist_name)}")
 
         self._get_discography_by_artist_id(artist_id)
 
@@ -432,150 +433,6 @@ class Musiclib():
 
 
 
-class MusiclibS(Musiclib):
-    def __init__(self, library_path):
-        super().__init__(library_path)
-
-        # Authenticate with Spotify
-        self.sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=api_key.spotify_client_id, client_secret=api_key.spotify_client_secret))
-
-    def _get_all_artist_albums(self, artist_id):
-        albums = []
-        for album_type in ['album', 'single']:
-            results = self.sp.artist_albums(artist_id, album_type=album_type)
-            albums.extend(results['items'])
-
-            while results['next']:
-                results = self.sp.next(results)
-                albums.extend(results['items'])
-
-        return albums
-
-    def _get_album_metadata(self, spotify_album):
-        album_metadata = []
-        tracks = self.sp.album_tracks(spotify_album['id'])
-        for track in tracks['items']:
-            track_info = _init_track_info()
-            track_info['track_name'] = _trackname_remove_unnecessary(track['name'])
-            track_info['track_artists'] = [_replace_slash(self._artist_rename(artist['name'])) for artist in track['artists']]
-            track_info['track_artists_str'] = ", ".join(track_info['track_artists'])
-            track_info['release_date'] = spotify_album['release_date'].split("-")[0]
-
-            if int(spotify_album['total_tracks']) > 1:
-                track_info['album_name'] = spotify_album['name']
-                track_info['track_number'] = track['track_number']
-                track_info['total_tracks'] = spotify_album['total_tracks']
-                track_info['album_artists'] = [_replace_slash(self._artist_rename(artist['name'])) for artist in spotify_album['artists']]
-            else:
-                track_info['album_artists'] = track_info['track_artists']
-
-            track_info['lyrics'] = lyrics_utils.get_lyrics(track_info['track_name'], track_info['track_artists_str'])
-            track_info['cover'] = _get_image(spotify_album['images'][0]['url'])
-
-            album_metadata.append(track_info)
-        
-        return album_metadata
-
-    def _get_artist_id(self, artist_name, download_top_result=False):
-        results = self.sp.search(q=f"artist:{artist_name}", type="artist", limit=1)
-        if not results['artists']['items']: return ''
-
-        for artist in results['artists']['items']: 
-
-            if not download_top_result:
-                artist_name = artist['name']
-                answer = input(f"Did you search artist {artist_name}? [y/n]: ")
-
-                # Skip current album
-                if answer.lower()[0] != 'y': continue
-
-            return artist['id']
-    
-        return ''
-
-    def _get_discography_by_artist_id(self, artist_id):
-        if not artist_id: return []
-
-        tracks_metadata = []
-
-        albums = self._get_all_artist_albums(artist_id)
-
-        for album in albums:
-            album_metadata = self._get_album_metadata(album)
-            tracks_metadata.extend(album_metadata)
-
-        return tracks_metadata
-    
-    def download_artist_discography(self, artist_name, download_top_result=False):
-        artist_id = self._get_artist_id(artist_name, download_top_result=download_top_result)
-        
-        print(f"Downloading the complete discography of the artist: {artist_name}")
-
-        tracks_metadata = self._get_discography_by_artist_id(artist_id)
-
-        for track_info in tracks_metadata:
-            self._download_track_by_metdata(track_info)
-
-    def download_album_by_name(self, search_term, download_top_result=False):
-        results = self.sp.search(q=search_term, type="album", limit=20)
-
-        album_metadata = []
-
-        for album in results['albums']['items']:
-
-            if not download_top_result:
-                album_name = album['name']
-                album_artists = [artist['name'] for artist in album['artists']]
-                album_artists_str = ", ".join(album_artists)
-                album_full_name = album_artists_str + " - " + album_name
-                answer = input(f"Did you search album {album_full_name}? [y/n]: ")
-
-                # Skip current album
-                if answer.lower()[0] != 'y': continue
-            
-            album_metadata = self._get_album_metadata(album)
-            break
-
-        for track_info in album_metadata:
-            self._download_track_by_metdata(track_info)
-
-    def download_track_by_name(self, search_term, download_top_result=False):
-        results = self.sp.search(q=search_term, type="track", limit=20)
-
-        for album in results['tracks']['items']:
-
-            track_name = album['name']
-            track_artists = [artist['name'] for artist in album['artists']]
-            track_artists_str = ", ".join(track_artists)
-
-            if not download_top_result:
-                track_full_name = track_artists_str + " - " + track_name
-                answer = input(f"Did you search track {track_full_name}? [y/n]: ")
-
-                # Skip current album
-                if answer.lower()[0] != 'y': continue
-            
-            album_metadata = self._get_album_metadata(album['album'])
-            track_info = album_metadata[album['track_number']-1]
-            self._download_track_by_metdata(track_info)
-            
-            break
-    
-    def _download_track_by_metdata(self, track_info):
-        search_term = f"{track_info['track_artists_str']} - {track_info['track_name']}"
-        tracks = self.ytmusic.search(search_term, filter="songs")
-        
-        if tracks:
-            track_info['ytm_id'] = tracks[0]['videoId']
-
-            # Add additional info about title from youtube music
-            artists = [artist['name'] for artist in tracks[0]['artists']]
-            artists_str = ", ".join(artists)
-            track_info['ytm_title'] = f"{artists_str} - {tracks[0]['title']}"
-
-            self._download_by_track_info(track_info)
-
-
 
 if __name__ == "__main__":
     library_path = input("Please enter the path for music library: ").strip()
@@ -583,6 +440,3 @@ if __name__ == "__main__":
 
     ml = Musiclib(library_path)
     ml.download_artist_discography(artist_name)
-
-    # mls = MusiclibS(library_path)
-    # mls.download_artist_discography(artist_name)
