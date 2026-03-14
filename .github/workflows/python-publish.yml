@@ -1,0 +1,34 @@
+name: Publish to PyPI
+
+# This triggers the workflow when you publish a new GitHub Release
+on:
+  release:
+    types: [published]
+
+jobs:
+  pypi-publish:
+    name: Build and publish to PyPI
+    runs-on: ubuntu-latest
+
+    # CRITICAL: These permissions are required for Trusted Publishing (OIDC)
+    permissions:
+      id-token: write  # Needed to securely authenticate with PyPI
+      contents: read   # Needed to check out your repository's code
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
