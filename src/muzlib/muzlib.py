@@ -5,6 +5,7 @@ import time
 import base64
 import requests
 from pathlib import Path
+from enum import Enum
 
 import yt_dlp
 from ytmusicapi import YTMusic
@@ -108,6 +109,11 @@ def _init_track_info():
     track_info['lyrics'] = ""
     track_info['cover'] = ""
     return track_info
+
+class SearchType(str, Enum):
+    ARTIST = "artist"
+    ALBUM = "album"
+    TRACK = "track"
 
 class Muzlib():
     def __init__(self, library_path, codec="opus", skip_downloaded=False):
