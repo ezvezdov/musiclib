@@ -108,7 +108,7 @@ def _init_track_info():
     track_info['cover'] = ""
     return track_info
 
-class Musiclib():
+class Muzlib():
     def __init__(self, library_path, codec="opus", skip_downloaded=False):
         """
         Docstring for __init__
@@ -135,12 +135,12 @@ class Musiclib():
 
         self.use_db = skip_downloaded
 
-        self.info_path = '.musiclib'
+        self.info_path = '.muzlib'
 
         self.library_path = library_path
         self.db_path = "db.json"
         self.artists_rename_path = "artists_rename.json"
-        self._backup_path_prefix = "musiclib_backup_"
+        self._backup_path_prefix = "muzlib_backup_"
         self.missing_path = "missing.json"
 
         self._init_library()
@@ -431,7 +431,7 @@ def main():
     library_path = input("Please enter the path for music library: ").strip()
     artist_name = input("Please enter artist name: ").strip()
 
-    ml = Musiclib(library_path)
+    ml = Muzlib(library_path)
     ml.download_artist_discography(artist_name)
 
 

@@ -1,7 +1,7 @@
 [project]
-name = "musiclib"
+name = "muzlib"
 version = "0.1.0"
-description = "Musiclib is a Python script that allows you to create your own music library."
+description = "Muzlib is a Python script that allows you to create your own music library."
 readme = "README.md"
 authors = [
     { name = "Yauheni Zviazdou", email = "ezvezdov22@gmail.com" }
@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-musiclib = "musiclib.musiclib:main"
+muzlib = "muzlib.muzlib:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
