@@ -271,6 +271,17 @@ class Muzlib():
             if questionary.confirm(f"Is this the {search_type.name} you searched for?\n  {full_name}").ask():
                 return result
             
+    
+    def download_by_search_result(self, search_result, search_type: SearchType):
+        if search_type == SearchType.ARTIST:
+            self._get_discography_by_artist_id(search_result['browseId'])
+        elif search_type == SearchType.ALBUM:
+            self._get_album_metadata(search_result['browseId'])
+        elif search_type == SearchType.TRACK:
+            self._get_album_metadata(search_result['album']['id'], single_id=search_result['videoId'], single_name=search_result['title'])
+        else:
+            logging_utils.logging.error(f"Invalid search type: {search_type}")
+            print(f"Invalid search type: {search_type}")
 
     def _get_artist_id(self, artist_name, download_top_result=False):
         search_results = self.ytmusic.search(artist_name, filter="artists")
