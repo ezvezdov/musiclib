@@ -229,6 +229,48 @@ class Muzlib():
             album_metadata.append(track_info)
         
         return album_metadata
+    
+    def search(self, search_term, search_type: SearchType):
+        if search_type == SearchType.ARTIST:
+            return self.ytmusic.search(search_term, filter="artists")
+        elif search_type == SearchType.ALBUM:
+            return self.ytmusic.search(query=search_term, filter="albums", limit=20)
+        elif search_type == SearchType.TRACK:
+            return self.ytmusic.search(query=search_term, filter="songs", limit=20)
+        else:
+            logging_utils.logging.error(f"Invalid search type: {search_type}")
+            print(f"Invalid search type: {search_type}")
+            return None
+    
+    def search_artist(self, artist_name):
+        return self.search(artist_name, SearchType.ARTIST)
+    
+    def search_album(self, artist_name, album_name):
+        return self.search(f"{artist_name} - {album_name}", SearchType.ALBUM)
+    
+    def search_track(self, artist_name, track_name):
+        return self.search(f"{artist_name} - {track_name}", SearchType.TRACK)
+
+    def go_though_search_results(self, search_results, search_type: SearchType):
+        for result in search_results:
+            if search_type == SearchType.ARTIST:
+                full_name = result['artist']
+            elif search_type == SearchType.ALBUM:
+                album_artists = [artist['name'] for artist in result['artists']]
+                album_artists_str = ", ".join(album_artists)
+                full_name = album_artists_str + " - " + result['title']
+            elif search_type == SearchType.TRACK:
+                song_artists = [artist['name'] for artist in result['artists']]
+                song_artists_str = ", ".join(song_artists)
+                full_name = song_artists_str + " - " + result['title']
+            else:
+                logging_utils.logging.error(f"Invalid search type: {search_type}")
+                print(f"Invalid search type: {search_type}")
+                return None
+            
+            if questionary.confirm(f"Is this the {search_type.name} you searched for?\n  {full_name}").ask():
+                return result
+            
 
     def _get_artist_id(self, artist_name, download_top_result=False):
         search_results = self.ytmusic.search(artist_name, filter="artists")
