@@ -1,43 +1,29 @@
 # Muzlib
 
 Muzlib is a Python script that allows you to create your own music library.
-Music is downloaded from YouTube, and music tags are constructed using data from YouTube and Spotify.
+Music is downloaded from YouTube, and music tags are constructed using data from YouTube, Lrclib, NetEase.
 
 # Instalation
 
 Ensure that you have installed [FFmpeg](https://ffmpeg.org/download.html).
 
-## Install muzlib using pip:
 ```bash
-pip install muzlib
-```
-
-## Install muzlib from source code:
-```bash
-git clone https://github.com/ezvezdov/muzlib
-cd muzlib/
 python -m venv .venv
 source .venv/bin/activate
-pip install yt_dlp ytmusicapi spotipy mutagen syncedlyrics
+pip install muzlib
 ```
 
 # Usage
 
 You can simply download discography of artist (YouTube API by default).
-```
-python muzlib.py
->>> Please enter the path for music library: ...
->>> Please enter artist name: ...
-```
+![Examople of usage ](assets/usage.gif)
 
 This script creates a simple database (`.muzlib/db.json`) to track downloaded tracks, allowing you to update an artist's discography without re-downloading existing tracks.
 
 ## Available clases
 
-There are two classes that can be used:
-1. `muzlib(library_path: str, skip_downloaded=False)`: library class that uses YouTube Music metadata (100% accuracy, but sometimes poor quality metadata).
-2. `muzlibS(library_path: str, skip_downloaded=False)`: library class that uses Spotify metadata (qood quality metadata, but sometimes invalid audio).
-+ `skip_downloaded`: If set to True, skip already downloaded file. By default (False).
+There is only one (for now ) classe that can be used:
+1. `muzlib(library_path: str, skip_downloaded=False)`: library class that uses YouTube Music metadata (100% accuracy, but sometimes poor quality metadata)
 
 ## Available methods
 
@@ -72,7 +58,7 @@ This function downloads track and set metadata from bacup file.
 
 ## Example of use
 
-You can use `Muzlib`/`MuzlibS` class in source code this way
+You can use `Muzlib`/`` class in source code this way
 ```python
 import muzlib
 ml = muzlib.Muzlib("Music")
@@ -81,7 +67,7 @@ ml.download_track_by_name("Ludwig Göransson - Destroyer Of Worlds", download_to
 # ml.download_artist_discography("Ludwig Göransson") 
 backup_path = ml.backup_library()
 
-ml2 = muzlib.MuzlibS("Music2")
+ml2 = muzlib.Muzlib("Music2")
 ml2.restore_library(backup_path)
 ```
 After running this code, the `Music` and `Music2` folders will be identical, each containing two tracks by Ludwig Göransson.
@@ -90,8 +76,4 @@ After running this code, the `Music` and `Music2` folders will be identical, eac
 # Troubleshooting
 
 > [!WARNING]
-> If you encounter issues with the Spotify API, you can provide your API key in the `api_key.py` file.
-> 1. Generate client_id and client_secret at [developer.spotify.com](https://developer.spotify.com/dashboard/create).
-> 2. Pass this data to the `api_key.py` file.
-> 
-> Alternatively you can use `Muzlib` instead of `MuzlibS`.
+> If you encounter issues with yt-dlp, you can replace default cookies at `assets/cookies.txt` as described at [this guide](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp).
