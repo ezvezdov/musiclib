@@ -8,6 +8,7 @@ from pathlib import Path
 
 import yt_dlp
 from ytmusicapi import YTMusic
+import questionary
 
 from . import lyrics_utils
 from .tag_utils import tag_utils
