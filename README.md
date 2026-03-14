@@ -7,6 +7,12 @@ Music is downloaded from YouTube, and music tags are constructed using data from
 
 Ensure that you have installed [FFmpeg](https://ffmpeg.org/download.html).
 
+## Install muzlib using pip:
+```bash
+pip install muzlib
+```
+
+## Install muzlib from source code:
 ```bash
 git clone https://github.com/ezvezdov/muzlib
 cd muzlib/
