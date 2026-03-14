@@ -488,12 +488,64 @@ class Muzlib():
             self.db = json.load(file)
 
 def main():
-    library_path = input("Please enter the path for music library: ").strip()
-    artist_name = input("Please enter artist name: ").strip()
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.prompt import Prompt
+    from rich import print as rprint
 
-    ml = Muzlib(library_path)
-    ml.download_artist_discography(artist_name)
+    console = Console()
 
+    console.print(Panel.fit("[bold cyan]🎵 Muzlib Downloader[/bold cyan]", border_style="cyan"))
+
+    # Path input with validation
+    while True:
+        library_path = Prompt.ask("[green]Music library path[/green]")
+        if library_path.strip():
+            break
+        console.print("[red]Path cannot be empty.[/red]")
+
+    # Try to init Muzlib
+    try:
+        ml = Muzlib(library_path.strip())
+    except Exception as e:
+        console.print(Panel(f"[red]Could not open library:[/red] {e}", border_style="red"))
+        return
+
+    # Interactive menu instead of free-text input
+    download_type = questionary.select(
+        "What do you want to download?",
+        choices=[
+            questionary.Choice("Complete discography", value=SearchType.ARTIST),
+            questionary.Choice("Specific album",       value=SearchType.ALBUM),
+            questionary.Choice("Specific track",       value=SearchType.TRACK),
+        ]
+    ).ask()
+
+    # If user pressed Ctrl+C
+    if download_type is None:
+        console.print("[yellow]Cancelled.[/yellow]")
+        return
+
+    # Ask for artist name in all cases, and album/track name if needed
+    artist_name = Prompt.ask("[green]Artist name[/green]").strip()
+
+    search_query = None
+    if download_type == SearchType.ARTIST:
+        search_query = artist_name
+    elif download_type == SearchType.ALBUM:
+        album_name = Prompt.ask("[green]Album name[/green]").strip()
+        search_query = f"{artist_name} – {album_name}"
+    elif download_type == SearchType.TRACK:
+        track_name = Prompt.ask("[green]Track name[/green]").strip()
+        search_query = f"{artist_name} – {track_name}"
+
+        
+    search_results = ml.search(search_query, download_type)
+    selected_result = ml.go_though_search_results(search_results, download_type)
+
+    with console.status(f"[cyan]Downloading {search_query}…[/cyan]"):
+        ml.download_by_search_result(selected_result, download_type)
+        console.print(f"[green]✓ Done![/green]")
 
 if __name__ == "__main__":
     main()
